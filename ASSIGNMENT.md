@@ -5,7 +5,7 @@
 
 ML Group Project provides a practical avenue for applying theoretical knowledge, allowing us to actively engage in the model development process. Through these exercises, we will hone our skills in crafting tailored solutions to detect malware and identify malicious network traffic, bridging the gap between theory and practice. 
 
-Students will work with their assigned group to collaboratively identify a dataset. Each student should be able to showcase the progress of EDA and model development code in their code editor of choice weekly in class.
+Students will work with their assigned group to collaboratively identify a dataset (our dataset is NSL-KDD). Each student should be able to showcase the progress of EDA and model development code in their code editor of choice weekly in class.
 
 **Assignment Instructions**
 
@@ -22,7 +22,7 @@ Submission guidelines.  This is a group presentation. One submission per group,
 
  
 
--  Data Set
+-  Data Set (NSL-KDD)
 -  Combined Code script from all group members 
 -  In-class presentation slide deck (add code snippets and group members), include business problem being solved, EDA, Predictive Prescriptive Analytics, ML algos used, metrics, conclusion, answers, or recommendations based on the project 
 
@@ -42,23 +42,13 @@ Many datasets exist for training and testing malware classification and network
 
 Let’s first see some datasets that can be used for malware analysis:
 
-- Kaggle: Renowned for hosting data science competitions, Kaggle offers numerous datasets pertinent to malware detection.
-- Microsoft Malware Classification Challenge: Microsoft has previously organized challenges focusing on malware classification, with datasets from these events potentially being accessible.
-- The Malware Dataset Repository by UCI: Maintained by the University of California, Irvine (UCI), this repository houses diverse malware datasets. Navigate through the UCI Machine Learning Repository to discover datasets concerning cybersecurity and malware detection.
 - The NSL-KDD dataset: Recognized as a prominent resource for intrusion detection, the NSL-KDD dataset encompasses both normal and attack traffic. Though not exclusively tailored to malware, it serves broader cybersecurity objectives.
-- Microsoft Research datasets: Microsoft Research offers datasets dedicated to malware detection and cybersecurity research.
 
 ## Network intrusion detection
 
 As for malware analysis, there exist datasets for network intrusion detection. Those datasets have been used in plenty of research papers and scientific projects. Here are some listed:
 
 - NSL-KDD: As an updated iteration of the original KDD Cup 1999 dataset, the NSL-KDD dataset rectifies several shortcomings of its predecessor. It furnishes a more authentic depiction of network traffic, encompassing both normal and attack instances.
-- UNSW-NB15: A comprehensive resource for network-based intrusion detection, the UNSW-NB15 dataset presents a broad spectrum of attack scenarios. It incorporates features such as payload data, statistical attributes, and protocol-specific characteristics.
-- Canadian Institute for Cybersecurity Intrusion Detection Systems 2017 (CICIDS2017): The CICIDS2017 dataset offers a contemporary collection of diverse attacks within a realistic network environment. It encompasses both raw packet data and flow-based features.
-- Aegean Wi-Fi Intrusion Dataset (AWID): Tailored for Wi-Fi intrusion detection, the AWID dataset encompasses various attack modalities within a Wi-Fi network. It stands as an apt resource for exploring wireless network security.
-- Kyoto 2006+ dataset: Derived from Kyoto University’s honeypots, this dataset presents network traffic data that includes diverse attack scenarios. It serves as a prevalent choice for the assessment of intrusion detection systems.
-- CSE-CIC-IDS2018: Engineered to assess intrusion detection systems within a realistic network setting, the CSE-CIC-IDS2018 dataset integrates both benign and malicious traffic, spanning many attack types.
-- IoTID20: This introduces a novel IoT botnet dataset. This dataset boasts a very comprehensive array of network and flow-based features. These flow-based features are instrumental in the analysis and evaluation of flow-based intrusion detection systems.
 
 ## **Phase I**
 
@@ -66,19 +56,7 @@ As for malware analysis, there exist datasets for network intrusion detection.
 
 In ML, it is important to extract meaningful insights from data that may not be obvious with traditional probability methods. This is due to the immense, dimensional, complex, heterogeneous, and distributed nature of the data. Data mining provides models and methods that generate insights from this data, which can influence business decisions.
 
-ML also requires the effort of many people at the organization. For this reason, you will be working in groups to complete this project. Your instructor may assign groups or let you select your own.
-
 This final project is an opportunity for you to build machine learning algorithms and data-mine such a dataset to identify key insights that answer key business questions and provide recommendations based on those insights. The file below provides the specific details on deliverables throughout this course.
-
-For this assignment, you will scour the internet for .gov websites to find datasets that have more than a million rows and more than 15 features. 
-
-You may find that combining several related sets of data is useful to ensure enough records and variables.
-
-Bring your findings to class and share
-
- 
-
-**NOTE: **Your group participation and your contribution to the ML Group project will be part of your final grade.
 
 Once your project dataset has been approved, work as a group to pre-process the data and complete an EDA. These steps will prepare you to build machine learning algorithms on the data. Explore the variables, data types, values, etc Calculate appropriate summary statistics and create appropriate graphs that will give you insights into the data. Include the answers to the following questions:
 
