@@ -1,99 +1,151 @@
 # ML Group Project Report
 
+## Project Title
+
+**Machine Learning for Network Intrusion Detection with NSL-KDD**
+
 ## Real-World Problem
 
-Enterprise networks face constant intrusion attempts: denial-of-service floods, probing scans, unauthorized access (R2L), and privilege escalation (U2R). Security teams cannot inspect every connection manually. **Network intrusion detection** uses connection-level features (protocol, service, byte volumes, error rates, host statistics) to flag suspicious traffic before damage spreads. Big-data ML fits because traffic volume is huge, labels are noisy, and nonlinear interactions among features matter. This project uses supervised learning on **NSL-KDD** to learn **normal vs attack** patterns and to quantify tradeoffs between catching attacks and burdening analysts with false alarms.
+Enterprise networks generate far more traffic than a human analyst can review manually. Security teams need a way to identify suspicious connections quickly enough to stop denial-of-service attacks, probes, and unauthorized access before the damage spreads. This is a strong machine-learning problem because the traffic is high-volume, the feature space mixes categorical and numeric signals, and the relationships between variables are not always obvious from simple rules alone.
 
-## Dataset Selection: NSL-KDD
+This project studies whether machine-learning models can distinguish normal network traffic from malicious traffic in a way that is useful for a security operations team. The practical business question is straightforward: can the organization catch more attacks while keeping false alarms low enough that analysts can still trust and use the system?
 
-We use **NSL-KDD** ([Kaggle `hassan06/nslkdd`](https://www.kaggle.com/datasets/hassan06/nslkdd)), an improved version of the KDD Cup 1999 data. It includes **KDDTrain+** and **KDDTest+** with **41 traffic features**, a **label** (e.g. `normal`, `neptune`, `satan`), and a **`difficulty_level`** field used in benchmark studies—not as an input feature.
+## Dataset Selection And Rationale
 
-We chose NSL-KDD because it is a **standard benchmark** for intrusion detection, includes both normal and many attack types, and separates training and test sets so we can report **honest generalization**. Limitations include age (traffic patterns have evolved) and a **class imbalance** (some attack types are rare).
+The group selected the **NSL-KDD** benchmark dataset, using the local submission copy in `data/nsl-kdd/` and the Kaggle mirror maintained at [Kaggle](https://www.kaggle.com/datasets/hassan06/nslkdd). NSL-KDD is a cleaned and improved version of the original KDD Cup 1999 intrusion-detection dataset and remains a common baseline for network intrusion research (Tavallaee et al., 2009).
 
-## EDA Workflow
+We chose this dataset for four reasons:
 
-**What we did.** We loaded training data with explicit column names, counted rows and labels, mapped the 23 attack labels into high-level categories (**Normal, DoS, Probing, R2L, U2R**) for visualization, and plotted top services, TCP connection flags, numeric distributions (e.g. `duration`, `src_bytes`), and mean **serror / rerror** rates by category.
+1. It directly matches the course theme of malware and network intrusion detection.
+2. It provides labeled train and test files, which supports an honest held-out evaluation.
+3. It contains 41 traffic features plus labels, giving enough signal for both EDA and supervised learning.
+4. It is widely cited, which makes it a credible benchmark for a classroom project.
 
-**Dataset size (combined train+test).** **148,517** rows (**125,973** train, **22,544** test), **41** predictive features plus `label` and `difficulty_level`.
+The combined dataset contains **148,517** rows: **125,973** in `KDDTrain+` and **22,544** in `KDDTest+`. Each record represents a network connection and includes protocol, service, TCP flag, byte counts, login indicators, error rates, and host-level aggregate statistics.
 
-**Quality.** **No missing values** and **no duplicate rows** in the combined frame used for summary statistics.
+## EDA Workflow And Findings
 
-**Outliers.** Features such as **duration** and **src_bytes** are **heavy-tailed**; large values often correspond to attacks rather than erroneous measurements, so we did not winsorize for EDA.
+### What We Did In Exploration
 
-**Cleaning.** We assigned column names to raw CSV rows, and we **exclude `difficulty_level` from modeling** because it is a benchmark metadata column, not a network measurement.
+The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. The notebook `EDA.ipynb` handles the more visual exploration, while `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
 
-**Findings.** The label distribution is **imbalanced**: `normal` and high-volume attacks (e.g. **neptune**) dominate; rare classes (e.g. **U2R**) have few examples. **Error-rate** features (`serror_rate`, `rerror_rate`, etc.) show different **fingerprints** by attack category in the heatmap in `EDA.ipynb`. **Service** and **flag** distributions differ between normal and attack traffic.
+### Data Volume And Structure
 
-**Proposed next steps.** Train **binary classifiers** (normal vs attack) with interpretable and tree-based models; report **precision, recall, F1, and confusion matrices**; optionally extend to multiclass or cost-sensitive learning given imbalance.
+- Rows: **148,517**
+- Predictive features: **41**
+- Additional fields: `label` and `difficulty_level`
+- Splits used: the dataset's original train/test files
 
-**Business questions for ML.** (1) Can we **automatically flag** likely intrusions with acceptable **false alarm** rates? (2) Which features drive alerts so analysts can **prioritize** investigations?
+### Missing Data, Duplicates, And Cleanliness
 
-## Data Preparation
+The combined summary shows **0 missing values** and **0 duplicate rows**. That allowed the project to focus more on feature encoding and class balance than on record repair.
 
-- **Target:** binary indicator **1 = attack**, **0 = normal** (all labels other than `normal`).
-- **Features:** all columns except `label` and **`difficulty_level`** (and `difficulty` if present in other exports).
-- **Categorical:** `protocol_type`, `service`, `flag` — missing values imputed with **most frequent**, then **one-hot** encoded (unknown categories ignored at test time).
-- **Numeric:** remaining columns — **median** imputation, **standard scaling**.
-- **Split:** use the dataset’s **native train/test files** (no random split on train).
+### Outliers And Suspicious Values
 
-## ML Methodology and Algorithms
+Several numeric variables, especially `duration` and `src_bytes`, are strongly right-skewed. These values were not automatically removed as outliers because in intrusion detection they can be meaningful indicators of attack behavior rather than bad data.
 
-**Algorithms.**
+### Cleaning And Preparation Decisions
 
-1. **Logistic regression** — linear baseline, fast to train, coefficients support qualitative interpretation of feature directions after preprocessing.
-2. **Random forest (300 trees)** — captures **nonlinear** interactions and feature importance without manual feature crosses; strong baseline on mixed categorical/numeric data after encoding.
+- Assigned explicit schema names to the raw text files
+- Excluded `difficulty_level` from modeling because it is benchmark metadata rather than a real traffic feature
+- Converted the multiclass attack labels into a binary target: `normal = 0`, `attack = 1`
+- One-hot encoded the categorical fields `protocol_type`, `service`, and `flag`
+- Median-imputed and standardized the numeric columns
 
-**Metrics.** **Accuracy**, **precision**, **recall**, **F1** (binary average), and **confusion matrix** on **KDDTest+**. For security, **recall** matters for catching attacks; **precision** matters to limit alert fatigue.
+### What We Found
 
-**Code walk-through (`src/train_models.py`).** `build_preprocessor` builds a **ColumnTransformer**: one branch for categoricals (impute → one-hot), one for numerics (impute → scale). `build_models` wraps the same preprocessor with each estimator. `train_and_evaluate_models` fits on **KDDTrain+** and evaluates on **KDDTest+**. `main.py` loads data via `load_nsl_kdd_frames`, writes EDA artifacts via `render_eda_artifacts`, then trains and writes `model_metrics.json` and `MODEL_METRICS.md`.
+EDA surfaced a clear class-imbalance pattern: normal traffic and a few high-volume attacks dominate the dataset, while rare attack types such as U2R appear only a handful of times. Service, flag, and error-rate variables also show visible separation between benign and malicious traffic. Those patterns mattered because they justified the chosen preprocessing pipeline and explained why accuracy alone would not be enough to evaluate success.
 
-## Results and Metrics
+### Proposed Next Steps From EDA
 
-On **22,544** test connections, **held-out** from training:
+The exploration suggested three modeling priorities:
+
+1. Start with a binary classifier before attempting fine-grained attack-type prediction.
+2. Compare an interpretable linear model with a nonlinear ensemble.
+3. Report precision, recall, F1, and confusion matrices so the class imbalance does not hide weak attack detection.
+
+## Machine Learning Methodology
+
+### Algorithms Used And Why
+
+The final pipeline compares two supervised models:
+
+1. **Logistic regression**: a strong baseline that is easy to explain and fast to train.
+2. **Random forest**: an ensemble model that can capture nonlinear interactions across encoded categorical and numeric variables.
+
+These models were selected because together they offer a useful tradeoff between interpretability and predictive flexibility.
+
+### Metrics Used
+
+The project evaluates each model on the held-out `KDDTest+` file using:
+
+- Accuracy
+- Precision
+- Recall
+- F1 score
+- Confusion matrix
+
+These metrics align with the business problem. Security teams care about **recall** because missed attacks are costly, but they also care about **precision** because too many false positives create alert fatigue.
+
+### Code Walk-Through
+
+The code is organized so each stage of the workflow is easy to explain in class:
+
+- `src/data_loader.py` resolves the dataset path, supports offline local data, and loads `KDDTrain+` and `KDDTest+`
+- `src/eda.py` computes dataset-level summary statistics and exports chart artifacts
+- `src/train_models.py` builds the preprocessing pipeline with `ColumnTransformer`, fits the baseline models, and writes evaluation metrics
+- `main.py` ties the full workflow together so a single command reproduces the project outputs
+
+## Results And Analysis
+
+The models were evaluated on **22,544** held-out network connections.
 
 | Model | Accuracy | Precision | Recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
 | Logistic regression | 0.7539 | 0.9176 | 0.6238 | 0.7427 |
-| Random forest | **0.7772** | **0.9689** | 0.6288 | **0.7626** |
+| Random forest | **0.7772** | **0.9689** | **0.6288** | **0.7626** |
 
-**Confusion matrices** (rows: true normal / attack; columns: predicted normal / attack):
+### Confusion Matrices
 
-- **Logistic regression:** normal: [8992, 719]; attack: [4828, 8005].
-- **Random forest:** normal: [9452, 259]; attack: [4764, 8069].
+- Logistic regression: normal `[8992, 719]`; attack `[4828, 8005]`
+- Random forest: normal `[9452, 259]`; attack `[4764, 8069]`
 
-**Analysis.** Random forest achieves **higher accuracy and precision** and **fewer false positives on normal traffic** (259 vs 719 false alarms in the “predicted attack” column for true normals). Both models show **moderate recall on attacks** (~0.62–0.63), so a non-trivial fraction of attacks are missed—consistent with a difficult test set and overlapping feature distributions. EDA showed **class imbalance and rare attack types**; improving recall may require **threshold tuning**, **class weights**, or **resampling**, at the cost of precision.
+### Interpretation
 
-**Figures.** See `EDA.ipynb` for category, service, flag, and error-rate plots. Running `python main.py` generates `outputs/label_distribution.png`, `outputs/numeric_feature_boxplot.png`, and metric files (see Appendix).
+The random forest performed best overall. Its largest advantage is precision: it produced far fewer false alarms on normal traffic than logistic regression. That makes it more practical as an analyst-facing first-stage filter. Both models still missed a meaningful number of attacks, which shows that NSL-KDD remains a challenging classification problem even for a reasonably strong baseline.
 
-## Interpretation and Recommendations
+The result matches the EDA story. Because the dataset contains mixed feature types and nonlinear relationships, the tree-based model was better able to capture the useful interactions. At the same time, the moderate recall values confirm that class imbalance and attack overlap remain important limitations.
 
-**For the data owner (security operations):** The tree-based model offers a **better precision–accuracy tradeoff** on this split, meaning **fewer false alerts per true positive** than logistic regression. Neither model should replace human judgment; both should feed a **ranked queue** for analysts.
+## Predictive And Prescriptive Analytics
 
-**Recommendations.**
+### Predictive Analytics
 
-1. **Deploy review:** Use **random forest** scores as a first-stage filter; **audit** false negatives on business-critical subnets.
-2. **Thresholding:** Tune the decision threshold on a **validation** slice to target a required **recall** or **max false positive rate**.
-3. **Features to monitor:** Prioritize **protocol**, **service**, **flag**, and **error-rate** features—they appear in EDA and are included in the pipeline; use **permutation importance** from the forest for a data-driven ranking.
-4. **Next modeling steps:** **Class weights** or **focal loss** analogs for imbalance; **multiclass** models per attack category; or **newer** tabular data and streaming features beyond NSL-KDD.
+The predictive portion of the project answers the question: **can the model forecast whether a connection is malicious?** The answer is yes. Both models separated attack traffic from normal traffic better than chance, and the random forest produced the strongest overall balance of accuracy, precision, and F1.
 
-## Weekly Code Walkthrough Notes
+### Prescriptive Analytics
 
-- **Loader:** `src/data_loader.py` — KaggleHub download, `KDDTrain+` / `KDDTest+` paths.
-- **EDA:** `src/eda.py` — `build_eda_summary`, `render_eda_artifacts`.
-- **Training:** `src/train_models.py` — preprocessor, pipelines, metrics.
-- **Entry point:** `main.py` — end-to-end run.
+The prescriptive part of the project focuses on what the data owner should do next based on those results:
+
+1. Use the random forest as the initial detection model for analyst review queues.
+2. Tune the decision threshold to target a higher operational recall when attack coverage matters more than alert volume.
+3. Monitor service, flag, and error-rate features because they appear to carry the strongest signal.
+4. Test class-weighted or resampled models to improve performance on rare attack behaviors.
+5. Extend the workflow to multiclass attack-family prediction after the binary baseline is stable.
+
+## Conclusion
+
+This project shows that machine learning can support intrusion detection in a practical and defensible way. On the NSL-KDD benchmark, both baseline models detected malicious traffic patterns, and the random forest offered the better operating tradeoff for a real-world security team. The analysis also showed why the problem is difficult: the dataset is imbalanced, some attacks are rare, and not every malicious connection is easy to distinguish from normal behavior.
+
+From a stakeholder perspective, the most useful takeaway is not simply that one model scored higher than another. The more important result is that the project identifies a reproducible workflow for loading security data, exploring class structure, encoding mixed features, evaluating baseline models, and turning those outputs into recommendations for analyst operations. That makes the work suitable both as a classroom presentation and as a foundation for a more advanced intrusion-detection system.
+
+## References
+
+Tavallaee, M., Bagheri, E., Lu, W., & Ghorbani, A. A. (2009). *A detailed analysis of the KDD CUP 99 data set*. 2009 IEEE Symposium on Computational Intelligence for Security and Defense Applications. https://doi.org/10.1109/CISDA.2009.5356528
+
+hassan06. (n.d.). *NSL-KDD* [Data set]. Kaggle. https://www.kaggle.com/datasets/hassan06/nslkdd
 
 ## Appendix
 
-**Generated artifacts (after `python main.py`):** `outputs/eda_summary.json`, `outputs/model_metrics.json`, `outputs/MODEL_METRICS.md`, `outputs/label_distribution.png`, `outputs/numeric_feature_boxplot.png`.
-
-**Key code — binary target and feature drop:**
-
-```python
-# src/train_models.py (conceptual)
-METADATA_COLUMNS = ("difficulty", "difficulty_level")
-features = frame.drop(columns=[TARGET_COLUMN, *METADATA_COLUMNS], errors="ignore")
-target = (frame[TARGET_COLUMN].astype(str).str.lower() != "normal").astype(int)
-```
-
-**Preprocessor (sklearn ColumnTransformer):** categorical → `SimpleImputer(most_frequent)` → `OneHotEncoder(handle_unknown="ignore")`; numeric → `SimpleImputer(median)` → `StandardScaler()`.
+- Reproducible pipeline entry point: `python main.py --data-dir data/nsl-kdd --output-dir outputs`
+- EDA notebook: `EDA.ipynb`
+- Generated artifacts: `outputs/eda_summary.json`, `outputs/model_metrics.json`, `outputs/MODEL_METRICS.md`, `outputs/label_distribution.png`, `outputs/numeric_feature_boxplot.png`

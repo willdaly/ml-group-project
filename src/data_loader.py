@@ -10,6 +10,8 @@ import kagglehub
 import pandas as pd
 
 DEFAULT_DATASET_HANDLE = os.getenv("KAGGLEHUB_DATASET", "hassan06/nslkdd")
+LOCAL_DATASET_ENV = "NSL_KDD_DATA_DIR"
+REPO_DATASET_ROOT = Path(__file__).resolve().parent.parent / "data" / "nsl-kdd"
 
 NSL_KDD_COLUMNS = [
     "duration",
@@ -66,15 +68,77 @@ def _find_matching_file(root: Path, candidates: Sequence[str]) -> Path:
     raise FileNotFoundError(f"Could not find any of {sorted(lowered)} under {root}")
 
 
-def download_dataset(dataset_handle: str | None = None) -> Path:
+def _contains_nsl_kdd_files(root: Path) -> bool:
+    try:
+        _find_matching_file(root, ["KDDTrain+.txt", "KDDTrain+.csv"])
+        _find_matching_file(root, ["KDDTest+.txt", "KDDTest+.csv"])
+    except FileNotFoundError:
+        return False
+    return True
+
+
+def _latest_cached_dataset_root(dataset_handle: str) -> Path | None:
+    parts = [part.strip() for part in dataset_handle.split("/") if part.strip()]
+    if len(parts) != 2:
+        return None
+
+    owner, dataset = parts
+    versions_root = Path.home() / ".cache" / "kagglehub" / "datasets" / owner / dataset / "versions"
+    if not versions_root.exists():
+        return None
+
+    version_paths = sorted(
+        (path for path in versions_root.iterdir() if path.is_dir()),
+        key=lambda path: (not path.name.isdigit(), int(path.name) if path.name.isdigit() else path.name),
+    )
+    for version_path in reversed(version_paths):
+        if _contains_nsl_kdd_files(version_path):
+            return version_path
+    return None
+
+
+def _resolve_local_dataset_root(data_dir: str | Path | None = None) -> Path | None:
+    candidates = [
+        data_dir,
+        os.getenv(LOCAL_DATASET_ENV),
+        REPO_DATASET_ROOT,
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        root = Path(candidate).expanduser()
+        if root.exists() and _contains_nsl_kdd_files(root):
+            return root
+    return None
+
+
+def download_dataset(dataset_handle: str | None = None, data_dir: str | Path | None = None) -> tuple[Path, str]:
+    local_root = _resolve_local_dataset_root(data_dir)
+    if local_root is not None:
+        return local_root, "local_path"
+
     handle = (dataset_handle or DEFAULT_DATASET_HANDLE).strip()
     if not handle:
         raise ValueError("KAGGLEHUB_DATASET must be a non-empty KaggleHub dataset handle.")
-    return Path(kagglehub.dataset_download(handle))
+
+    cached_root = _latest_cached_dataset_root(handle)
+    if cached_root is not None:
+        return cached_root, "kagglehub_cache"
+
+    try:
+        return Path(kagglehub.dataset_download(handle)), "kagglehub_download"
+    except Exception as exc:  # pragma: no cover - network failures are environment-specific
+        raise RuntimeError(
+            "Unable to download the NSL-KDD dataset. Provide a local directory with "
+            "KDDTrain+.txt and KDDTest+.txt via --data-dir or set NSL_KDD_DATA_DIR."
+        ) from exc
 
 
-def load_nsl_kdd_frames(dataset_handle: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, str]]:
-    dataset_root = download_dataset(dataset_handle)
+def load_nsl_kdd_frames(
+    dataset_handle: str | None = None,
+    data_dir: str | Path | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, str]]:
+    dataset_root, dataset_source = download_dataset(dataset_handle=dataset_handle, data_dir=data_dir)
     train_path = _find_matching_file(dataset_root, ["KDDTrain+.txt", "KDDTrain+.csv"])
     test_path = _find_matching_file(dataset_root, ["KDDTest+.txt", "KDDTest+.csv"])
 
@@ -82,6 +146,7 @@ def load_nsl_kdd_frames(dataset_handle: str | None = None) -> tuple[pd.DataFrame
     test_df = pd.read_csv(test_path, names=NSL_KDD_COLUMNS)
     metadata = {
         "dataset_root": str(dataset_root),
+        "dataset_source": dataset_source,
         "train_path": str(train_path),
         "test_path": str(test_path),
     }

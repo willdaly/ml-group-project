@@ -1,39 +1,70 @@
-# ML Group Project — Presentation
+---
+marp: true
+title: ML Group Project Presentation
+paginate: true
+---
 
-## Slide 1: Business problem
+# ML Group Project Presentation
 
-- Networks see huge connection volume; manual review does not scale.
-- **Goal:** Flag **intrusions** early using connection-level features, balancing **catching attacks** (recall) with **analyst workload** (precision / false alarms).
-- **Why ML:** High dimensionality, nonlinear patterns, labeled historical traffic (e.g. NSL-KDD).
+## Slide 1: Title Slide
+
+- **Project:** Machine Learning for Network Intrusion Detection with NSL-KDD
+- **Course:** [Add course name and section]
+- **Group members:** [Replace with student names]
+- **Date:** [Add presentation date]
+
+**Opening line:** Our project asks whether machine learning can detect malicious network traffic early enough to support a real security operations workflow.
 
 ---
 
-## Slide 2: Dataset — NSL-KDD
+## Slide 2: Business Problem
 
-- **Source:** NSL-KDD (`hassan06/nslkdd` via KaggleHub) — train and test files **KDDTrain+** / **KDDTest+**.
-- **Size:** **125,973** train + **22,544** test rows; **41** features + label + `difficulty_level` (metadata only).
-- **Why this dataset:** Standard IDS benchmark; honest train/test split; multiple attack families.
-- **Caveat:** Dated traffic; **class imbalance** (rare attack types).
+- Enterprise networks generate too many connections for manual review.
+- Security teams need to catch attacks without overwhelming analysts with false alarms.
+- **Business question:** Can we automatically flag suspicious connections while keeping the alert stream usable?
+- **Why ML:** The data is high-volume, high-dimensional, and contains nonlinear relationships.
 
----
-
-## Slide 3: EDA highlights
-
-- **Quality:** **0** missing values, **0** duplicate rows (combined summary).
-- **Labels:** Dominated by `normal` and high-volume attacks (e.g. DoS); rare classes exist.
-- **Plots (see `EDA.ipynb`):** Attack **category** mix; top **services** and **flags**; **duration** / **src_bytes** normal vs attack; **error-rate heatmap** by category.
-- **Takeaway:** Categorical and error-rate features carry signal; imbalance motivates careful metrics (**precision/recall/F1**), not accuracy alone.
+**Presenter note:** Emphasize that this is not only a classification exercise; it is an operations decision problem.
 
 ---
 
-## Slide 4: Preprocessing and target
+## Slide 3: Dataset And Why We Chose It
 
-- **Target:** `normal` → 0, any attack label → 1.
-- **Drop:** `label`, **`difficulty_level`** (not a traffic feature).
-- **Categorical** (`protocol_type`, `service`, `flag`): impute → **one-hot**.
-- **Numeric:** median impute → **standardize**.
+- **Dataset:** NSL-KDD
+- **Files used:** `KDDTrain+.txt` and `KDDTest+.txt`
+- **Rows:** 125,973 train + 22,544 test = 148,517 total
+- **Columns:** 41 predictive features plus `label` and `difficulty_level`
+- **Why we chose it:** established intrusion-detection benchmark, clear train/test split, strong fit for the course topic
+- **Submission packaging:** local copy included in `data/nsl-kdd/` so the project runs offline
 
-**Snippet — feature/target split:**
+**Citation footer:** Tavallaee et al. (2009); Kaggle mirror: `hassan06/nslkdd`
+
+---
+
+## Slide 4: EDA And Data Quality
+
+- Combined train/test summary showed **0 missing values** and **0 duplicate rows**
+- Label distribution is imbalanced: normal traffic and a few high-volume attack types dominate
+- Numeric features such as `duration` and `src_bytes` are heavily skewed
+- Service, flag, and error-rate variables show strong signal for attack detection
+
+**Visuals to include:**
+
+- `outputs/label_distribution.png`
+- `outputs/numeric_feature_boxplot.png`
+- One screenshot or figure from `EDA.ipynb`
+
+---
+
+## Slide 5: Data Preparation
+
+- **Target:** `normal = 0`, all attack labels = `1`
+- **Dropped from features:** `label`, `difficulty_level`
+- **Categorical fields:** `protocol_type`, `service`, `flag`
+- **Categorical preprocessing:** most-frequent imputation + one-hot encoding
+- **Numeric preprocessing:** median imputation + standard scaling
+
+**Code snippet:**
 
 ```python
 METADATA_COLUMNS = ("difficulty", "difficulty_level")
@@ -43,41 +74,71 @@ target = (frame[TARGET_COLUMN].astype(str).str.lower() != "normal").astype(int)
 
 ---
 
-## Slide 5: Models and metrics
+## Slide 6: ML Algorithms And Why
 
-- **Models:** **Logistic regression** (interpretable linear boundary) vs **Random forest** (300 trees, nonlinear).
-- **Metrics:** Accuracy, precision, recall, F1, confusion matrix on **held-out KDDTest+**.
-- **Why these metrics:** Security teams care about **missed attacks** (recall) and **false alerts** (precision).
+- **Logistic regression**
+  - Fast baseline
+  - Easy to explain
+  - Useful for comparison
+- **Random forest**
+  - Captures nonlinear interactions
+  - Handles mixed-feature patterns well after preprocessing
+  - Often strong on tabular security data
+
+**Metrics used:** accuracy, precision, recall, F1, confusion matrix
+
+**Presenter note:** Explain that recall matters for missed attacks, while precision matters for analyst workload.
 
 ---
 
-## Slide 6: Results (test set)
+## Slide 7: Predictive Analytics Results
 
 | Model | Accuracy | Precision | Recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
-| Logistic regression | 0.754 | 0.918 | 0.624 | 0.743 |
-| Random forest | **0.777** | **0.969** | 0.629 | **0.763** |
+| Logistic regression | 0.7539 | 0.9176 | 0.6238 | 0.7427 |
+| Random forest | **0.7772** | **0.9689** | **0.6288** | **0.7626** |
 
-- Random forest: **fewer false positives on normal traffic** (better precision).
-- Both models: **moderate attack recall** — room for threshold tuning / class weights.
+- Random forest had the best overall performance
+- Biggest gain: fewer false positives on normal traffic
+- Both models still missed a meaningful share of attacks
 
-**Snippet — end-to-end entry point:**
+**Talking point:** This means the best model is useful, but not ready to replace human judgment.
 
-```python
-# main.py
-train_df, test_df, metadata = load_nsl_kdd_frames(dataset_handle=args.dataset)
-summary = build_eda_summary(train_df, test_df, metadata)
-render_eda_artifacts(train_df, summary, output_dir=args.output_dir)
-results = train_and_evaluate_models(train_df, test_df)
-write_model_artifacts(results, output_dir=args.output_dir)
+---
+
+## Slide 8: Prescriptive Analytics And Recommendations
+
+- Use the **random forest** as the first-pass detection model
+- Tune the threshold to increase recall when the cost of missed attacks is high
+- Monitor **service**, **flag**, and **error-rate** features closely
+- Test class weighting or resampling to improve rare-attack detection
+- Expand later to multiclass attack-family prediction
+
+**Key message:** The model should feed a ranked analyst queue, not operate as a fully autonomous blocker.
+
+---
+
+## Slide 9: Code Walk-Through
+
+- `src/data_loader.py` — resolves the local dataset path and loads the train/test files
+- `src/eda.py` — produces summary statistics and plots
+- `src/train_models.py` — builds preprocessing and trains the baseline models
+- `main.py` — runs the full pipeline end to end
+- `EDA.ipynb` — interactive visual exploration for class discussion
+
+**Demo command:**
+
+```bash
+python main.py --data-dir data/nsl-kdd --output-dir outputs
 ```
 
 ---
 
-## Slide 7: Recommendations and code walkthrough roles
+## Slide 10: Conclusion
 
-- **Recommendations:** Use RF scores as a **first filter**; **tune thresholds** for operational recall targets; monitor **service/flag/error-rate** features; consider **class weights** for rare attacks.
-- **Group walkthrough:**  
-  - Member A: `EDA.ipynb` — categories and heatmap.  
-  - Member B: `src/data_loader.py` + `main.py`.  
-  - Member C: `src/train_models.py` — `ColumnTransformer` and metrics.
+- ML can support intrusion detection on NSL-KDD with useful baseline performance
+- Random forest provided the strongest balance of precision and overall effectiveness
+- The project produced both a data story and an operational recommendation
+- The repository is submission-ready and reproducible offline
+
+**Close:** Our final recommendation is to treat the random forest model as a decision-support tool and improve recall through threshold tuning and imbalance-aware training.

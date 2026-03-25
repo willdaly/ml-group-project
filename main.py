@@ -13,6 +13,11 @@ from src.train_models import train_and_evaluate_models, write_model_artifacts
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run NSL-KDD EDA and baseline model training.")
     parser.add_argument(
+        "--data-dir",
+        default=None,
+        help="Optional local directory containing KDDTrain+ and KDDTest+ files.",
+    )
+    parser.add_argument(
         "--output-dir",
         default="outputs",
         help="Directory for EDA plots, eda_summary.json, and model metrics (default: outputs).",
@@ -24,13 +29,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    train_df, test_df, metadata = load_nsl_kdd_frames(dataset_handle=args.dataset)
+    train_df, test_df, metadata = load_nsl_kdd_frames(dataset_handle=args.dataset, data_dir=args.data_dir)
     summary = build_eda_summary(train_df, test_df, metadata)
     render_eda_artifacts(train_df, summary, output_dir=args.output_dir)
 
     results = train_and_evaluate_models(train_df, test_df)
     write_model_artifacts(results, output_dir=args.output_dir)
 
+    dataset_root = metadata.get("dataset_root", "unknown")
+    dataset_source = metadata.get("dataset_source", "unspecified_source")
+    print("Loaded dataset from", dataset_root, f"({dataset_source})")
     print("Wrote EDA summary and plots to", args.output_dir)
     print("Wrote model_metrics.json and MODEL_METRICS.md to", args.output_dir)
     return 0

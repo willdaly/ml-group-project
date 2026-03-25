@@ -2,15 +2,17 @@
 
 ## Overview
 
-This repository implements the NSL-KDD intrusion-detection workflow: exploratory analysis (`EDA.ipynb`), reproducible EDA artifacts and baseline models (`main.py`), and written deliverables (`Report.md`, `PRESENTATION.md`).
+This repository packages a complete NSL-KDD intrusion-detection project for class submission. It includes the dataset, exploratory analysis, reproducible model-training code, generated artifacts, a written report, and a slide-ready presentation outline.
 
-## Full Assignment
+## Submission Contents
 
-See `ASSIGNMENT.md` for the complete assignment brief.
-
-## Due Date
-
-2026-04-04T03:59:59Z
+- `data/nsl-kdd/` — Local copy of `KDDTrain+.txt` and `KDDTest+.txt` for offline grading.
+- `EDA.ipynb` — Interactive exploration and visual analysis.
+- `main.py` and `src/` — End-to-end pipeline for EDA artifacts and baseline ML models.
+- `outputs/` — Generated charts and model metrics included with the submission.
+- `Report.md` — Final written report.
+- `PRESENTATION.md` — Slide-ready presentation content with code snippets and speaking points.
+- `SUBMISSION_CHECKLIST.md` — Quick turn-in checklist mapped to the assignment.
 
 ## Setup
 
@@ -18,39 +20,28 @@ See `ASSIGNMENT.md` for the complete assignment brief.
 pip install -r requirements.txt
 ```
 
-[KaggleHub](https://github.com/Kaggle/kagglehub) downloads the dataset on first run. The default handle is `hassan06/nslkdd`. Override with the environment variable `KAGGLEHUB_DATASET` or `python main.py --dataset your/handle`.
+## Run The Project
 
-## Run the pipeline
-
-```bash
-python main.py
-```
-
-Optional:
+The repository is now self-contained and runs offline with the included dataset:
 
 ```bash
-python main.py --output-dir outputs --dataset hassan06/nslkdd
+python main.py --data-dir data/nsl-kdd --output-dir outputs
 ```
 
-This loads `KDDTrain+.txt` and `KDDTest+.txt`, writes `eda_summary.json`, EDA plots, `model_metrics.json`, and `MODEL_METRICS.md` under `outputs/` (ignored by git).
+Optional Kaggle fallback still works when internet access is available:
 
-## Notebook vs script
+```bash
+python main.py --dataset hassan06/nslkdd --output-dir outputs
+```
 
-- **`EDA.ipynb`** — Interactive exploration, plots, and Phase I narrative (attack categories, services, distributions).
-- **`main.py`** — Same dataset definitions as the notebook; regenerates summary statistics and trains/evaluates baseline models for the report.
-
-## Running tests
+## Run Tests
 
 ```bash
 pytest
 ```
 
-## Course context
+## Notes For Submission
 
-See `COURSE_CONTEXT.md` for relevant excerpts from course materials.
-
-## Deliverables in repo
-
-- `Report.md` — Written report (Phase I and II).
-- `PRESENTATION.md` — Slide outline and talking points.
-- `src/` — Shared loaders, EDA helpers, and sklearn pipelines.
+- Replace the group-member placeholders in `PRESENTATION.md` before turn-in.
+- If the instructor expects generated artifacts, they are already included under `outputs/`.
+- If the instructor specifically requires confirmation that NSL-KDD was approved despite the earlier Phase I dataset guidance, verify that approval before submitting.

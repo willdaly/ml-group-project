@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
+
+_MPL_CONFIG_DIR = Path(tempfile.gettempdir()) / "ml-group-project-matplotlib"
+_MPL_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(_MPL_CONFIG_DIR))
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 
 
 def build_eda_summary(train_df: pd.DataFrame, test_df: pd.DataFrame, metadata: dict[str, str]) -> dict:
@@ -42,7 +47,7 @@ def render_eda_artifacts(train_df: pd.DataFrame, summary: dict, output_dir: str 
     numeric_columns = train_df.select_dtypes(include=["number"]).columns.tolist()[:6]
     if numeric_columns:
         plt.figure(figsize=(10, 6))
-        sns.boxplot(data=train_df[numeric_columns])
+        plt.boxplot([train_df[column].dropna().tolist() for column in numeric_columns], tick_labels=numeric_columns)
         plt.xticks(rotation=30, ha="right")
         plt.title("Sample Numeric Feature Distribution")
         plt.tight_layout()
