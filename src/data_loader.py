@@ -9,10 +9,7 @@ from typing import Sequence
 import kagglehub
 import pandas as pd
 
-DEFAULT_DATASET_HANDLE = os.getenv(
-    "KAGGLEHUB_DATASET",
-    "<set-your-nsl-kdd-kagglehub-handle>",
-)
+DEFAULT_DATASET_HANDLE = os.getenv("KAGGLEHUB_DATASET", "hassan06/nslkdd")
 
 NSL_KDD_COLUMNS = [
     "duration",
@@ -57,7 +54,7 @@ NSL_KDD_COLUMNS = [
     "dst_host_rerror_rate",
     "dst_host_srv_rerror_rate",
     "label",
-    "difficulty",
+    "difficulty_level",
 ]
 
 
@@ -71,10 +68,8 @@ def _find_matching_file(root: Path, candidates: Sequence[str]) -> Path:
 
 def download_dataset(dataset_handle: str | None = None) -> Path:
     handle = (dataset_handle or DEFAULT_DATASET_HANDLE).strip()
-    if not handle or handle.startswith("<"):
-        raise ValueError(
-            "Set KAGGLEHUB_DATASET to the KaggleHub handle for your NSL-KDD dataset before running this scaffold."
-        )
+    if not handle:
+        raise ValueError("KAGGLEHUB_DATASET must be a non-empty KaggleHub dataset handle.")
     return Path(kagglehub.dataset_download(handle))
 
 

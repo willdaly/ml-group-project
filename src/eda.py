@@ -18,7 +18,7 @@ def build_eda_summary(train_df: pd.DataFrame, test_df: pd.DataFrame, metadata: d
         "train_rows": int(len(train_df)),
         "test_rows": int(len(test_df)),
         "combined_rows": int(len(combined_df)),
-        "feature_count": int(combined_df.shape[1] - 2),
+        "feature_count": int(train_df.shape[1] - 2),
         "missing_values": int(combined_df.isna().sum().sum()),
         "duplicate_rows": int(combined_df.duplicated().sum()),
         "label_distribution": combined_df["label"].value_counts().to_dict(),

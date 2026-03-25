@@ -15,6 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 TARGET_COLUMN = "label"
+METADATA_COLUMNS = ("difficulty", "difficulty_level")
 CATEGORICAL_COLUMNS = ["protocol_type", "service", "flag"]
 
 
@@ -23,7 +24,8 @@ def _binary_target(series: pd.Series) -> pd.Series:
 
 
 def _split_features(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    features = frame.drop(columns=[TARGET_COLUMN, "difficulty"], errors="ignore")
+    drop_cols = [TARGET_COLUMN, *METADATA_COLUMNS]
+    features = frame.drop(columns=drop_cols, errors="ignore")
     target = _binary_target(frame[TARGET_COLUMN])
     return features, target
 
