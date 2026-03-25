@@ -1,28 +1,40 @@
-"""ML Group Project
+"""NSL-KDD ML group project: load data, EDA artifacts, train baseline models."""
 
-ML Group project
-ML Group Project provides a practical avenue for applying theoretical knowledge, allowing us to actively engage in the model development process. Through these exercises, we will hone
-"""
+from __future__ import annotations
 
-def deck():
-    """TODO: implement deck."""
-    raise NotImplementedError
+import argparse
+import sys
 
-def Irvine():
-    """TODO: implement Irvine."""
-    raise NotImplementedError
+from src.data_loader import load_nsl_kdd_frames
+from src.eda import build_eda_summary, render_eda_artifacts
+from src.train_models import train_and_evaluate_models, write_model_artifacts
 
-def Dataset():
-    """TODO: implement Dataset."""
-    raise NotImplementedError
 
-def question():
-    """TODO: implement question."""
-    raise NotImplementedError
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run NSL-KDD EDA and baseline model training.")
+    parser.add_argument(
+        "--output-dir",
+        default="outputs",
+        help="Directory for EDA plots, eda_summary.json, and model metrics (default: outputs).",
+    )
+    parser.add_argument(
+        "--dataset",
+        default=None,
+        help="KaggleHub dataset handle (default: KAGGLEHUB_DATASET env or hassan06/nslkdd).",
+    )
+    args = parser.parse_args(argv)
 
-def main():
-    """Main function - implement your solution here."""
-    pass
+    train_df, test_df, metadata = load_nsl_kdd_frames(dataset_handle=args.dataset)
+    summary = build_eda_summary(train_df, test_df, metadata)
+    render_eda_artifacts(train_df, summary, output_dir=args.output_dir)
+
+    results = train_and_evaluate_models(train_df, test_df)
+    write_model_artifacts(results, output_dir=args.output_dir)
+
+    print("Wrote EDA summary and plots to", args.output_dir)
+    print("Wrote model_metrics.json and MODEL_METRICS.md to", args.output_dir)
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
