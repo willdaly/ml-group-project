@@ -1,0 +1,15 @@
+Multiclass Attack-Category Classification Report
+================================================
+
+              precision    recall  f1-score   support
+
+      Normal       0.63      0.97      0.77      9711
+         DoS       0.96      0.76      0.85      7458
+       Probe       0.85      0.59      0.70      2421
+         R2L       0.81      0.00      0.01      2887
+         U2R       0.50      0.03      0.06        67
+
+    accuracy                           0.74     22544
+   macro avg       0.75      0.47      0.48     22544
+weighted avg       0.79      0.74      0.69     22544
+

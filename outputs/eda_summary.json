@@ -48,6 +48,13 @@
     "sqlattack": 2,
     "udpstorm": 2
   },
+  "attack_category_distribution": {
+    "Normal": 77054,
+    "DoS": 53385,
+    "Probe": 14077,
+    "R2L": 3882,
+    "U2R": 119
+  },
   "numeric_columns": [
     "duration",
     "src_bytes",

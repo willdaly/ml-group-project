@@ -62,7 +62,11 @@ def test_train_and_evaluate_models_smoke():
         rows.append(row)
     train_df = pd.DataFrame(rows[:16])
     test_df = pd.DataFrame(rows[16:])
-    results = train_and_evaluate_models(train_df, test_df)
-    assert len(results) == 2
-    assert {result["model"] for result in results} == {"logistic_regression", "random_forest"}
+    results, *_ = train_and_evaluate_models(train_df, test_df)
+    assert len(results) == 3
+    assert {result["model"] for result in results} == {
+        "logistic_regression",
+        "random_forest",
+        "gradient_boosting",
+    }
     assert all(0 <= result["accuracy"] <= 1 for result in results)

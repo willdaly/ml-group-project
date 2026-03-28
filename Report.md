@@ -27,14 +27,14 @@ The combined dataset contains **148,517** rows: **125,973** in `KDDTrain+` and *
 
 ### What We Did In Exploration
 
-The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. The notebook `EDA.ipynb` handles the more visual exploration, while `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
+The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. Attack labels are mapped to the five standard NSL-KDD categories — Normal, DoS, Probe, R2L, and U2R — using a comprehensive lookup table. The notebook `EDA.ipynb` handles the more visual exploration, while `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
 
 ### Data Volume And Structure
 
-- Rows: **148,517**
-- Predictive features: **41**
-- Additional fields: `label` and `difficulty_level`
-- Splits used: the dataset's original train/test files
+* Rows: **148,517**
+* Predictive features: **41**
+* Additional fields: `label` and `difficulty_level`
+* Splits used: the dataset's original train/test files
 
 ### Missing Data, Duplicates, And Cleanliness
 
@@ -42,110 +42,167 @@ The combined summary shows **0 missing values** and **0 duplicate rows**. That a
 
 ### Outliers And Suspicious Values
 
-Several numeric variables, especially `duration` and `src_bytes`, are strongly right-skewed. These values were not automatically removed as outliers because in intrusion detection they can be meaningful indicators of attack behavior rather than bad data.
+Several numeric variables, especially `duration` and `src_bytes`, are strongly right-skewed. These values were not automatically removed as outliers because in intrusion detection they can be meaningful indicators of attack behavior rather than bad data. The boxplot visualizations in `outputs/numeric_feature_boxplot.png` show distributions across all five attack categories, making the per-category skew patterns visible.
 
 ### Cleaning And Preparation Decisions
 
-- Assigned explicit schema names to the raw text files
-- Excluded `difficulty_level` from modeling because it is benchmark metadata rather than a real traffic feature
-- Converted the multiclass attack labels into a binary target: `normal = 0`, `attack = 1`
-- One-hot encoded the categorical fields `protocol_type`, `service`, and `flag`
-- Median-imputed and standardized the numeric columns
+* Assigned explicit schema names to the raw text files
+* Excluded `difficulty_level` from modeling because it is benchmark metadata rather than a real traffic feature
+* Mapped 23 fine-grained attack labels to 5 standard categories (Normal, DoS, Probe, R2L, U2R) for multiclass analysis
+* Converted the multiclass attack labels into a binary target for the primary classification pipeline: `normal = 0`, `attack = 1`
+* One-hot encoded the categorical fields `protocol_type`, `service`, and `flag`
+* Median-imputed and standardized the numeric columns
 
 ### What We Found
 
-EDA surfaced a clear class-imbalance pattern: normal traffic and a few high-volume attacks dominate the dataset, while rare attack types such as U2R appear only a handful of times. Service, flag, and error-rate variables also show visible separation between benign and malicious traffic. Those patterns mattered because they justified the chosen preprocessing pipeline and explained why accuracy alone would not be enough to evaluate success.
+EDA surfaced a clear class-imbalance pattern: normal traffic and a few high-volume DoS attacks dominate the dataset, while R2L and U2R attack types are extremely rare. The attack category distribution chart (`outputs/attack_category_distribution.png`) shows Normal and DoS together make up over 85% of training data, with U2R representing less than 0.1%.
+
+The correlation heatmap (`outputs/correlation_heatmap.png`) revealed several strongly correlated feature pairs — such as `serror_rate` and `srv_serror_rate`, and `dst_host_serror_rate` and `dst_host_srv_serror_rate` — suggesting redundancy that could be addressed with feature selection in future iterations. The categorical feature analysis (`outputs/categorical_features_by_attack.png`) showed that protocol type, service, and TCP flag each carry useful separation signal between attack categories.
 
 ### Proposed Next Steps From EDA
 
-The exploration suggested three modeling priorities:
+The exploration suggested four modeling priorities:
 
 1. Start with a binary classifier before attempting fine-grained attack-type prediction.
-2. Compare an interpretable linear model with a nonlinear ensemble.
-3. Report precision, recall, F1, and confusion matrices so the class imbalance does not hide weak attack detection.
+2. Compare an interpretable linear model, a tree-based ensemble, and a gradient boosting model.
+3. Use class-weighted models to address the imbalance problem directly.
+4. Report precision, recall, F1, AUC, and confusion matrices so the class imbalance does not hide weak attack detection.
 
 ## Machine Learning Methodology
 
 ### Algorithms Used And Why
 
-The final pipeline compares two supervised models:
+The final pipeline compares three supervised models with class-imbalance handling:
 
-1. **Logistic regression**: a strong baseline that is easy to explain and fast to train.
-2. **Random forest**: an ensemble model that can capture nonlinear interactions across encoded categorical and numeric variables.
+1. **Logistic Regression** (`class_weight='balanced'`): a strong interpretable baseline that is fast to train and easy to explain. Class weighting ensures the model does not ignore minority attack classes.
+2. **Random Forest** (`class_weight='balanced'`, 300 estimators): an ensemble model that captures nonlinear interactions across the mixed feature space. The balanced class weights upweight rare attack samples during tree construction.
+3. **Gradient Boosting** (100 estimators, subsample=0.8): a sequential boosting approach that builds each tree to correct the errors of the previous one, often achieving the strongest overall performance on structured datasets.
 
-These models were selected because together they offer a useful tradeoff between interpretability and predictive flexibility.
+These models were selected because together they span the tradeoff between interpretability, robustness, and predictive power. Adding class weighting directly addresses the imbalance identified in EDA.
 
 ### Metrics Used
 
 The project evaluates each model on the held-out `KDDTest+` file using:
 
-- Accuracy
-- Precision
-- Recall
-- F1 score
-- Confusion matrix
+* Accuracy
+* Precision
+* Recall
+* F1 score
+* AUC (area under the ROC curve)
+* Confusion matrix
 
-These metrics align with the business problem. Security teams care about **recall** because missed attacks are costly, but they also care about **precision** because too many false positives create alert fatigue.
+These metrics align with the business problem. Security teams care about **recall** because missed attacks are costly, but they also care about **precision** because too many false positives create alert fatigue. AUC provides a threshold-independent view of overall model discrimination.
 
 ### Code Walk-Through
 
 The code is organized so each stage of the workflow is easy to explain in class:
 
-- `src/data_loader.py` resolves the dataset path, supports offline local data, and loads `KDDTrain+` and `KDDTest+`
-- `src/eda.py` computes dataset-level summary statistics and exports chart artifacts
-- `src/train_models.py` builds the preprocessing pipeline with `ColumnTransformer`, fits the baseline models, and writes evaluation metrics
-- `main.py` ties the full workflow together so a single command reproduces the project outputs
+* `src/data_loader.py` resolves the dataset path, supports offline local data, and loads `KDDTrain+` and `KDDTest+`
+* `src/eda.py` computes dataset-level summary statistics, maps attack categories, and exports 6 sets of chart artifacts including correlation heatmaps and per-category feature distributions
+* `src/train_models.py` builds the preprocessing pipeline with `ColumnTransformer`, fits three binary classifiers with class weighting, generates ROC curves, confusion matrix heatmaps, feature importance plots, and a model comparison chart. It also trains a separate multiclass Random Forest for 5-class attack-category prediction.
+* `main.py` ties the full workflow together so a single command reproduces all project outputs
 
 ## Results And Analysis
 
-The models were evaluated on **22,544** held-out network connections.
+### Binary Classification
 
-| Model | Accuracy | Precision | Recall | F1 |
-| --- | ---: | ---: | ---: | ---: |
-| Logistic regression | 0.7539 | 0.9176 | 0.6238 | 0.7427 |
-| Random forest | **0.7772** | **0.9689** | **0.6288** | **0.7626** |
+The three models were evaluated on **22,544** held-out network connections.
 
-### Confusion Matrices
+| Model | Accuracy | Precision | Recall | F1 | AUC |
+| --- | --- | --- | --- | --- | --- |
+| Logistic Regression | 0.7543 | 0.9169 | 0.6250 | 0.7433 | 0.7915 |
+| Random Forest | 0.7663 | 0.9677 | 0.6098 | 0.7481 | 0.9623 |
+| **Gradient Boosting** | **0.8204** | **0.9704** | **0.7059** | **0.8173** | **0.9570** |
 
-- Logistic regression: normal `[8992, 719]`; attack `[4828, 8005]`
-- Random forest: normal `[9452, 259]`; attack `[4764, 8069]`
+### Binary Confusion Matrices
+
+See `outputs/confusion_matrices.png` for side-by-side heatmaps of all three models.
+
+### ROC Curves
+
+The ROC curve comparison (`outputs/roc_curves.png`) shows Random Forest and Gradient Boosting both achieve excellent AUC scores above 0.95, while Logistic Regression lags at 0.79 — confirming that the nonlinear relationships in the data reward more flexible models.
+
+### Feature Importance
+
+The Random Forest feature importance plot (`outputs/feature_importance.png`) identifies the top 20 predictive features. Service-related one-hot features, error rates (`serror_rate`, `srv_serror_rate`), and connection-level statistics (`src_bytes`, `dst_host_srv_count`) rank highest, confirming the patterns observed during EDA.
+
+### Multiclass Attack-Category Classification
+
+A separate balanced Random Forest was trained on the five standard NSL-KDD categories:
+
+| Category | Precision | Recall | F1 | Support |
+| --- | --- | --- | --- | --- |
+| Normal | 0.63 | 0.97 | 0.77 | 9,711 |
+| DoS | 0.96 | 0.76 | 0.85 | 7,458 |
+| Probe | 0.85 | 0.59 | 0.70 | 2,421 |
+| R2L | 0.81 | 0.00 | 0.01 | 2,887 |
+| U2R | 0.50 | 0.03 | 0.06 | 67 |
+
+Overall multiclass accuracy: **0.7363**
+
+The multiclass results expose a critical insight: while the model handles Normal and DoS traffic well, **R2L and U2R attacks are nearly undetectable** with standard classification approaches. These rare attack types have fundamentally different feature signatures that the model struggles to learn from limited training examples. This finding directly informs the prescriptive recommendations below.
 
 ### Interpretation
 
-The random forest performed best overall. Its largest advantage is precision: it produced far fewer false alarms on normal traffic than logistic regression. That makes it more practical as an analyst-facing first-stage filter. Both models still missed a meaningful number of attacks, which shows that NSL-KDD remains a challenging classification problem even for a reasonably strong baseline.
+Gradient Boosting performed best overall on binary classification, achieving the highest accuracy (0.82), recall (0.71), and F1 (0.82). Its key advantage is substantially better recall than Logistic Regression or Random Forest, meaning it catches more actual attacks while maintaining near-perfect precision. The ROC curves confirm both tree-based models achieve strong discrimination (AUC > 0.95).
 
-The result matches the EDA story. Because the dataset contains mixed feature types and nonlinear relationships, the tree-based model was better able to capture the useful interactions. At the same time, the moderate recall values confirm that class imbalance and attack overlap remain important limitations.
+The multiclass analysis reveals that binary detection is the more practical deployment approach: it reliably separates normal from malicious traffic. Fine-grained attack categorization remains a harder problem that would require specialized techniques like per-category thresholding, cost-sensitive learning, or synthetic oversampling of rare attack types.
 
 ## Predictive And Prescriptive Analytics
 
 ### Predictive Analytics
 
-The predictive portion of the project answers the question: **can the model forecast whether a connection is malicious?** The answer is yes. Both models separated attack traffic from normal traffic better than chance, and the random forest produced the strongest overall balance of accuracy, precision, and F1.
+The predictive portion of the project answers the question: **can the model forecast whether a connection is malicious?** The answer is yes. All three binary models separated attack traffic from normal traffic meaningfully, and Gradient Boosting produced the strongest overall balance of accuracy, precision, recall, and F1.
 
 ### Prescriptive Analytics
 
 The prescriptive part of the project focuses on what the data owner should do next based on those results:
 
-1. Use the random forest as the initial detection model for analyst review queues.
-2. Tune the decision threshold to target a higher operational recall when attack coverage matters more than alert volume.
-3. Monitor service, flag, and error-rate features because they appear to carry the strongest signal.
-4. Test class-weighted or resampled models to improve performance on rare attack behaviors.
-5. Extend the workflow to multiclass attack-family prediction after the binary baseline is stable.
+1. **Deploy Gradient Boosting as the initial detection model** for analyst review queues, given its superior recall and F1.
+2. **Tune the decision threshold** to target higher operational recall when attack coverage matters more than alert volume. The ROC curves show both tree-based models maintain strong precision across a wide range of thresholds.
+3. **Prioritize monitoring of service, error-rate, and connection-count features** because they carry the strongest predictive signal per the feature importance analysis.
+4. **Invest in specialized detection for R2L and U2R attacks**, which the multiclass analysis showed are nearly invisible to standard classifiers. Techniques like anomaly detection, SMOTE oversampling, or cost-sensitive learning should be evaluated.
+5. **Establish feedback loops** between model predictions and analyst outcomes to continuously refine the system — a key step in the MLOps Maintain and Monitor phases.
+6. **Extend to multiclass prediction** after improving rare-attack detection, so the system can route different attack types to different response workflows.
+
+## APLC Framework Alignment
+
+This project follows the four quadrants of Dr. Seshadri's Analytics Product Life Cycle (APLC):
+
+* **Business Quadrant**: We framed the business problem (network intrusion detection), right-sized the project scope to the NSL-KDD benchmark, and organized the team with clear roles and weekly milestones.
+* **Data Engineering Quadrant**: We conducted comprehensive EDA including feature correlation analysis, attack-category mapping, class-imbalance assessment, and categorical feature analysis across 6 visualization sets.
+* **Modeling Quadrant**: We developed and compared three ML algorithms with class weighting, evaluated using multiple metrics, and extended to multiclass prediction. We iterated based on initial results to add Gradient Boosting after finding the first two models had limited recall.
+* **Software Engineering Quadrant**: We packaged the project as a reproducible Python pipeline with modular source code, automated outputs, and a single-command entry point.
 
 ## Conclusion
 
-This project shows that machine learning can support intrusion detection in a practical and defensible way. On the NSL-KDD benchmark, both baseline models detected malicious traffic patterns, and the random forest offered the better operating tradeoff for a real-world security team. The analysis also showed why the problem is difficult: the dataset is imbalanced, some attacks are rare, and not every malicious connection is easy to distinguish from normal behavior.
+This project shows that machine learning can support intrusion detection in a practical and defensible way. On the NSL-KDD benchmark, Gradient Boosting offered the best operating tradeoff for a real-world security team, achieving 0.82 accuracy and 0.71 recall while maintaining 0.97 precision. The multiclass analysis further showed that while binary detection works well, rare attack types (R2L, U2R) require specialized approaches — a finding that would not have emerged from binary metrics alone.
 
-From a stakeholder perspective, the most useful takeaway is not simply that one model scored higher than another. The more important result is that the project identifies a reproducible workflow for loading security data, exploring class structure, encoding mixed features, evaluating baseline models, and turning those outputs into recommendations for analyst operations. That makes the work suitable both as a classroom presentation and as a foundation for a more advanced intrusion-detection system.
+From a stakeholder perspective, the most useful takeaway is not simply that one model scored higher than another. The project identifies a reproducible workflow for loading security data, exploring class structure, encoding mixed features, training class-weighted models, evaluating across multiple metrics, and turning those outputs into actionable recommendations for security operations. That makes the work suitable both as a classroom presentation and as a foundation for a more advanced intrusion-detection system.
 
 ## References
 
-Tavallaee, M., Bagheri, E., Lu, W., & Ghorbani, A. A. (2009). *A detailed analysis of the KDD CUP 99 data set*. 2009 IEEE Symposium on Computational Intelligence for Security and Defense Applications. https://doi.org/10.1109/CISDA.2009.5356528
+Tavallaee, M., Bagheri, E., Lu, W., & Ghorbani, A. A. (2009). *A detailed analysis of the KDD CUP 99 data set*. 2009 IEEE Symposium on Computational Intelligence for Security and Defense Applications. <https://doi.org/10.1109/CISDA.2009.5356528>
 
-hassan06. (n.d.). *NSL-KDD* [Data set]. Kaggle. https://www.kaggle.com/datasets/hassan06/nslkdd
+hassan06. (n.d.). *NSL-KDD* [Data set]. Kaggle. <https://www.kaggle.com/datasets/hassan06/nslkdd>
 
 ## Appendix
 
-- Reproducible pipeline entry point: `python main.py --data-dir data/nsl-kdd --output-dir outputs`
-- EDA notebook: `EDA.ipynb`
-- Generated artifacts: `outputs/eda_summary.json`, `outputs/model_metrics.json`, `outputs/MODEL_METRICS.md`, `outputs/label_distribution.png`, `outputs/numeric_feature_boxplot.png`
+* Reproducible pipeline entry point: `python main.py --data-dir data/nsl-kdd --output-dir outputs`
+* EDA notebook: `EDA.ipynb`
+* Generated artifacts:
+  * `outputs/eda_summary.json` — dataset summary statistics
+  * `outputs/label_distribution.png` — top 10 fine-grained attack labels
+  * `outputs/attack_category_distribution.png` — 5-category bar and pie charts
+  * `outputs/binary_class_distribution.png` — normal vs attack counts
+  * `outputs/correlation_heatmap.png` — feature correlation matrix
+  * `outputs/numeric_feature_boxplot.png` — key features by attack category
+  * `outputs/categorical_features_by_attack.png` — protocol/service/flag analysis
+  * `outputs/confusion_matrices.png` — side-by-side binary confusion matrices
+  * `outputs/roc_curves.png` — ROC curve comparison with AUC scores
+  * `outputs/feature_importance.png` — top 20 Random Forest feature importances
+  * `outputs/model_comparison.png` — metric comparison bar chart
+  * `outputs/multiclass_confusion_matrix.png` — 5-class confusion matrix heatmap
+  * `outputs/multiclass_report.txt` — per-class precision/recall/F1
+  * `outputs/model_metrics.json` — binary metrics in JSON
+  * `outputs/MODEL_METRICS.md` — binary metrics in Markdown
