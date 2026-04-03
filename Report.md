@@ -44,7 +44,9 @@ The combined summary shows **0 missing values** and **0 duplicate rows**. That a
 
 ### Outliers And Suspicious Values
 
-Several numeric variables, especially `duration` and `src_bytes`, are strongly right-skewed. These values were not automatically removed as outliers because in intrusion detection they can be meaningful indicators of attack behavior rather than bad data. The boxplot visualizations in `outputs/numeric_feature_boxplot.png` show distributions across all five attack categories, making the per-category skew patterns visible.
+Several numeric variables, especially `duration` and `src_bytes`, are strongly right-skewed. These values were not automatically removed as outliers because in intrusion detection they can be meaningful indicators of attack behavior rather than bad data. The boxplot visualizations below show distributions across all five attack categories, making the per-category skew patterns visible.
+
+![Key numeric feature distributions by attack category](outputs/numeric_feature_boxplot.png){ width=90% }
 
 ### Cleaning And Preparation Decisions
 
@@ -57,9 +59,19 @@ Several numeric variables, especially `duration` and `src_bytes`, are strongly r
 
 ### What We Found
 
-EDA surfaced a clear class-imbalance pattern: normal traffic and a few high-volume DoS attacks dominate the dataset, while R2L and U2R attack types are extremely rare. The attack category distribution chart (`outputs/attack_category_distribution.png`) shows Normal and DoS together make up over 85% of training data, with U2R representing less than 0.1%.
+EDA surfaced a clear class-imbalance pattern: normal traffic and a few high-volume DoS attacks dominate the dataset, while R2L and U2R attack types are extremely rare. The attack category distribution chart below shows Normal and DoS together make up over 85% of training data, with U2R representing less than 0.1%.
 
-The correlation heatmap (`outputs/correlation_heatmap.png`) revealed several strongly correlated feature pairs — such as `serror_rate` and `srv_serror_rate`, and `dst_host_serror_rate` and `dst_host_srv_serror_rate` — suggesting redundancy that could be addressed with feature selection in future iterations. The categorical feature analysis (`outputs/categorical_features_by_attack.png`) showed that protocol type, service, and TCP flag each carry useful separation signal between attack categories.
+![Attack category distribution — bar and donut charts of the five NSL-KDD categories](outputs/attack_category_distribution.png){ width=90% }
+
+![Fine-grained label distribution — top 10 individual attack types by record count](outputs/label_distribution.png){ width=90% }
+
+![Binary class distribution — normal vs. attack](outputs/binary_class_distribution.png){ width=60% }
+
+The correlation heatmap below revealed several strongly correlated feature pairs — such as `serror_rate` and `srv_serror_rate`, and `dst_host_serror_rate` and `dst_host_srv_serror_rate` — suggesting redundancy that could be addressed with feature selection in future iterations. The categorical feature analysis showed that protocol type, service, and TCP flag each carry useful separation signal between attack categories.
+
+![Feature correlation heatmap](outputs/correlation_heatmap.png){ width=90% }
+
+![Categorical features (protocol type, service, flag) broken down by attack category](outputs/categorical_features_by_attack.png){ width=90% }
 
 ### Proposed Next Steps From EDA
 
@@ -116,17 +128,23 @@ The three models were evaluated on **22,544** held-out network connections.
 | Random Forest | 0.7663 | 0.9677 | 0.6098 | 0.7481 | 0.9623 |
 | **Gradient Boosting** | **0.8204** | **0.9704** | **0.7059** | **0.8173** | **0.9570** |
 
+![Model comparison — accuracy, precision, recall, F1, and AUC across all three classifiers](outputs/model_comparison.png){ width=90% }
+
 ### Binary Confusion Matrices
 
-See `outputs/confusion_matrices.png` for side-by-side heatmaps of all three models.
+![Side-by-side confusion matrices for all three binary classifiers](outputs/confusion_matrices.png){ width=90% }
 
 ### ROC Curves
 
-The ROC curve comparison (`outputs/roc_curves.png`) shows Random Forest and Gradient Boosting both achieve excellent AUC scores above 0.95, while Logistic Regression lags at 0.79 — confirming that the nonlinear relationships in the data reward more flexible models.
+Random Forest and Gradient Boosting both achieve excellent AUC scores above 0.95, while Logistic Regression lags at 0.79 — confirming that the nonlinear relationships in the data reward more flexible models.
+
+![ROC curves with AUC scores for all three models](outputs/roc_curves.png){ width=80% }
 
 ### Feature Importance
 
-The Random Forest feature importance plot (`outputs/feature_importance.png`) identifies the top 20 predictive features. Service-related one-hot features, error rates (`serror_rate`, `srv_serror_rate`), and connection-level statistics (`src_bytes`, `dst_host_srv_count`) rank highest, confirming the patterns observed during EDA.
+The top 20 predictive features from Random Forest are shown below. Service-related one-hot features, error rates (`serror_rate`, `srv_serror_rate`), and connection-level statistics (`src_bytes`, `dst_host_srv_count`) rank highest, confirming the patterns observed during EDA.
+
+![Top 20 Random Forest feature importances](outputs/feature_importance.png){ width=90% }
 
 ### Multiclass Attack-Category Classification
 
@@ -141,6 +159,8 @@ A separate balanced Random Forest was trained on the five standard NSL-KDD categ
 | U2R | 0.50 | 0.03 | 0.06 | 67 |
 
 Overall multiclass accuracy: **0.7363**
+
+![Multiclass confusion matrix — 5-category attack classification](outputs/multiclass_confusion_matrix.png){ width=70% }
 
 The multiclass results expose a critical insight: while the model handles Normal and DoS traffic well, **R2L and U2R attacks are nearly undetectable** with standard classification approaches. A breakdown of the training data explains why — the combined R2L and U2R categories contain only **1,047 records out of 125,973 (0.83%)**, with U2R accounting for just 52 examples across four attack types (`buffer_overflow`: 30, `rootkit`: 10, `loadmodule`: 9, `perl`: 3) and R2L totaling 995 examples dominated by `warezclient` (890) with the remaining seven types having fewer than 55 records each. With so few examples, the model cannot learn reliable decision boundaries for these classes. This finding directly informs the prescriptive recommendations below.
 
