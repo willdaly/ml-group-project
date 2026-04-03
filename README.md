@@ -7,11 +7,12 @@ This repository packages a complete NSL-KDD intrusion-detection project for clas
 ## Submission Contents
 
 - `data/nsl-kdd/` — Local copy of `KDDTrain+.txt` and `KDDTest+.txt` for offline grading.
-- `EDA.ipynb` — Interactive exploration and visual analysis.
+- `EDA.ipynb` — Interactive exploration and visual analysis (styled, used for class presentation).
+- `01_eda_nsl_kdd.ipynb` — Full methodical EDA walkthrough on the complete training set with fine-grained attack-type breakdowns.
 - `main.py` and `src/` — End-to-end pipeline for EDA artifacts and baseline ML models.
 - `outputs/` — Generated charts and model metrics included with the submission.
-- `Report.md` — Final written report.
-- `PRESENTATION.md` — Slide-ready presentation content with code snippets and speaking points.
+- `Report.md` / `Report.pdf` — Final written report (PDF is the submission copy).
+- `PRESENTATION.md` / `PRESENTATION.pptx` — Slide deck with embedded charts and speaking points (pptx is the submission copy).
 - `SUBMISSION_CHECKLIST.md` — Quick turn-in checklist mapped to the assignment.
 
 ## Setup
@@ -39,9 +40,3 @@ python main.py --dataset hassan06/nslkdd --output-dir outputs
 ```bash
 pytest
 ```
-
-## Notes For Submission
-
-- Replace the group-member placeholders in `PRESENTATION.md` before turn-in.
-- If the instructor expects generated artifacts, they are already included under `outputs/`.
-- If the instructor specifically requires confirmation that NSL-KDD was approved despite the earlier Phase I dataset guidance, verify that approval before submitting.
