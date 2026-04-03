@@ -1,5 +1,13 @@
 # ML Group Project Report
 
+**Northeastern University — Khoury College of Computer Sciences**
+**Course:** AAI 6600 — Applied Artificial Intelligence
+**Professor:** Dr. Seshadri
+**Students:** Will Daly, Wei Dong, Zahra Joulaei
+**Date:** April 7, 2026
+
+---
+
 ## Project Title
 
 **Machine Learning for Network Intrusion Detection with NSL-KDD**
