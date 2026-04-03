@@ -11,8 +11,9 @@ This repository packages a complete NSL-KDD intrusion-detection project for clas
 - `01_eda_nsl_kdd.ipynb` — Full methodical EDA walkthrough on the complete training set with fine-grained attack-type breakdowns.
 - `main.py` and `src/` — End-to-end pipeline for EDA artifacts and baseline ML models.
 - `outputs/` — Generated charts and model metrics included with the submission.
-- `Report.md` / `Report.pdf` — Final written report (PDF is the submission copy).
-- `PRESENTATION.md` / `PRESENTATION.pptx` — Slide deck with embedded charts and speaking points (pptx is the submission copy).
+- `Report.pdf` — Final written report (submission copy).
+- `PRESENTATION.pptx` — Slide deck with embedded charts (submission copy).
+- `drafts/` — Markdown source files for the report and presentation.
 - `SUBMISSION_CHECKLIST.md` — Quick turn-in checklist mapped to the assignment.
 
 ## Setup
