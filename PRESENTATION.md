@@ -127,7 +127,7 @@ paginate: true
 | R2L | 0.81 | 0.00 | 0.01 | 2,887 |
 | U2R | 0.50 | 0.03 | 0.06 | 67 |
 
-**Critical insight:** R2L and U2R attacks are nearly undetectable with standard classifiers — they need specialized approaches.
+**Critical insight:** R2L and U2R attacks are nearly undetectable with standard classifiers — they need specialized approaches. The training data explains why: U2R had only **52 total examples** across 4 attack types; R2L had **995**, with 890 coming from a single type (`warezclient`). Together they represent just **0.83% of training data** — too few for the model to learn reliable decision boundaries.
 
 **Show:** `outputs/multiclass_confusion_matrix.png`
 

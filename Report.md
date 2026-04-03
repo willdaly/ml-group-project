@@ -140,7 +140,7 @@ A separate balanced Random Forest was trained on the five standard NSL-KDD categ
 
 Overall multiclass accuracy: **0.7363**
 
-The multiclass results expose a critical insight: while the model handles Normal and DoS traffic well, **R2L and U2R attacks are nearly undetectable** with standard classification approaches. These rare attack types have fundamentally different feature signatures that the model struggles to learn from limited training examples. This finding directly informs the prescriptive recommendations below.
+The multiclass results expose a critical insight: while the model handles Normal and DoS traffic well, **R2L and U2R attacks are nearly undetectable** with standard classification approaches. A breakdown of the training data explains why — the combined R2L and U2R categories contain only **1,047 records out of 125,973 (0.83%)**, with U2R accounting for just 52 examples across four attack types (`buffer_overflow`: 30, `rootkit`: 10, `loadmodule`: 9, `perl`: 3) and R2L totaling 995 examples dominated by `warezclient` (890) with the remaining seven types having fewer than 55 records each. With so few examples, the model cannot learn reliable decision boundaries for these classes. This finding directly informs the prescriptive recommendations below.
 
 ### Interpretation
 
