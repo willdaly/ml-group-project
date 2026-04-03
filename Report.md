@@ -1,16 +1,10 @@
-# ML Group Project Report
+# Machine Learning for Network Intrusion Detection with NSL-KDD
 
-**Northeastern University — Khoury College of Computer Sciences**
-**Course:** AAI 6600 — Applied Artificial Intelligence
-**Professor:** Dr. Seshadri
-**Students:** Will Daly, Wei Dong, Zahra Joulaei
+**Northeastern University**\
+**Course:** AAI 6600 — Applied Artificial Intelligence\
+**Professor:** Dr. Seshadri\
+**Students:** Will Daly, Wei Dong, Zahra Joulaei\
 **Date:** April 7, 2026
-
----
-
-## Project Title
-
-**Machine Learning for Network Intrusion Detection with NSL-KDD**
 
 ## Real-World Problem
 
@@ -35,7 +29,7 @@ The combined dataset contains **148,517** rows: **125,973** in `KDDTrain+` and *
 
 ### What We Did In Exploration
 
-The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. Attack labels are mapped to the five standard NSL-KDD categories — Normal, DoS, Probe, R2L, and U2R — using a comprehensive lookup table. The notebook `EDA.ipynb` handles the more visual exploration, while `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
+The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. Attack labels are mapped to the five standard NSL-KDD categories — Normal, DoS, Probe, R2L, and U2R — using a comprehensive lookup table. The notebooks `EDA.ipynb` and `01_eda_nsl_kdd.ipynb` handle the visual exploration — `EDA.ipynb` provides the primary styled analysis used for the class presentation, while `01_eda_nsl_kdd.ipynb` documents a full methodical walkthrough of the complete training set including fine-grained attack-type breakdowns. `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
 
 ### Data Volume And Structure
 
@@ -106,7 +100,7 @@ These metrics align with the business problem. Security teams care about **recal
 The code is organized so each stage of the workflow is easy to explain in class:
 
 * `src/data_loader.py` resolves the dataset path, supports offline local data, and loads `KDDTrain+` and `KDDTest+`
-* `src/eda.py` computes dataset-level summary statistics, maps attack categories, and exports 6 sets of chart artifacts including correlation heatmaps and per-category feature distributions
+* `src/eda.py` computes dataset-level summary statistics, maps attack categories, and exports 6 sets of chart artifacts including correlation heatmaps and per-category feature distributions; supplementary full-dataset exploration is documented in `01_eda_nsl_kdd.ipynb`
 * `src/train_models.py` builds the preprocessing pipeline with `ColumnTransformer`, fits three binary classifiers with class weighting, generates ROC curves, confusion matrix heatmaps, feature importance plots, and a model comparison chart. It also trains a separate multiclass Random Forest for 5-class attack-category prediction.
 * `main.py` ties the full workflow together so a single command reproduces all project outputs
 
@@ -193,6 +187,8 @@ From a stakeholder perspective, the most useful takeaway is not simply that one 
 Tavallaee, M., Bagheri, E., Lu, W., & Ghorbani, A. A. (2009). *A detailed analysis of the KDD CUP 99 data set*. 2009 IEEE Symposium on Computational Intelligence for Security and Defense Applications. <https://doi.org/10.1109/CISDA.2009.5356528>
 
 hassan06. (n.d.). *NSL-KDD* [Data set]. Kaggle. <https://www.kaggle.com/datasets/hassan06/nslkdd>
+
+Anthropic. (2026). *Claude* (claude-sonnet-4-6) [Large language model]. This project used Claude to assist with code development, analysis, and report writing. <https://www.anthropic.com>
 
 ## Appendix
 
