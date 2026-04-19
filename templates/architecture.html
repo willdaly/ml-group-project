@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Architecture — NSL-KDD Detection Engine{% endblock %}
+
+{% block extra_css %}
+      .arch-diagram {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.88rem;
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px 24px;
+        line-height: 1.7;
+        overflow-x: auto;
+        white-space: pre;
+        color: var(--ink);
+      }
+{% endblock %}
+
+{% block content %}
+<h1>Architecture</h1>
+<p class="subtitle">How the codebase is organized into a reusable ML core, service layer, and API.</p>
+
+<h2>Design Goals</h2>
+<div class="card">
+  <p>The original project was a compact class-submission pipeline centered around <code>main.py</code>. The refactor introduced cleaner boundaries so the ML logic can be reused independently of the HTTP layer:</p>
+  <ul>
+    <li><strong>Core</strong> — pure data loading, feature engineering, model training, inference, and explanations</li>
+    <li><strong>Services</strong> — application workflows that coordinate core modules</li>
+    <li><strong>API</strong> — FastAPI routes, schemas, and the browser demo</li>
+  </ul>
+  <p>Legacy modules remain as compatibility shims so existing tests and the CLI continue to work.</p>
+</div>
+
+<h2>Module Layout</h2>
+<div class="arch-diagram">src/
+  core/
+    data_loader.py    dataset resolution and NSL-KDD frame loading
+    features.py       target mapping, preprocessing, feature-frame normalization
+    models.py         scikit-learn model factories and joblib persistence
+    train.py          training, evaluation, visualization, saved artifacts
+    infer.py          single and batch inference helpers
+    explain.py        concise analyst-style explanation text
+  services/
+    training_service.py     full training workflow
+    detection_service.py    model loading + predict / predict_many
+    reporting_service.py    incident summary aggregation
+  api/
+    app.py            FastAPI factory and page routes
+    schemas.py        request and response models
+    routes/           health, train, predict, and report endpoints</div>
+
+<h2>Request Flow</h2>
+<div class="card">
+  <h3>Training</h3>
+  <p><code>main.py</code> or <code>POST /train</code> &rarr; TrainingService &rarr; load data &rarr; EDA &rarr; train binary models &rarr; train multiclass model &rarr; save artifacts</p>
+
+  <h3>Prediction</h3>
+  <p><code>POST /predict</code> &rarr; DetectionService &rarr; load models &rarr; normalize features &rarr; score binary &rarr; score multiclass &rarr; explain &rarr; return result</p>
+
+  <h3>Reporting</h3>
+  <p><code>POST /report/incidents</code> &rarr; accept predictions or raw records &rarr; aggregate counts &rarr; summarize high-confidence attacks</p>
+</div>
+
+<h2>Saved Artifacts</h2>
+<div class="card">
+  <ul>
+    <li><code>models/binary_model.joblib</code> — best binary classifier pipeline</li>
+    <li><code>models/multiclass_model.joblib</code> — attack category classifier</li>
+    <li><code>models/metadata.json</code> — training run metadata</li>
+    <li><code>outputs/</code> — EDA charts, metrics JSON, confusion matrices, ROC curves</li>
+  </ul>
+</div>
+
+<h2>Design Boundaries</h2>
+<div class="card">
+  <ul>
+    <li>Core modules do not import FastAPI</li>
+    <li>Services coordinate workflows but do not define HTTP schemas</li>
+    <li>API routes validate requests, call services, and return response models</li>
+    <li>Compatibility shims keep old imports stable for tests and notebooks</li>
+  </ul>
+</div>
+
+<h2>Future Direction</h2>
+<div class="card">
+  <p>The clean separation of core, services, and API makes it straightforward to wrap the detection and reporting services in an autonomous agent runtime without changing the ML logic.</p>
+  <p><a href="/presentation">See the presentation &rarr;</a></p>
+</div>
+{% endblock %}

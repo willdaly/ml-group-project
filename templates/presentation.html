@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Presentation — NSL-KDD Detection Engine{% endblock %}
+
+{% block extra_css %}
+      .slide {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 28px 32px;
+        margin-bottom: 20px;
+      }
+      .slide h2 {
+        margin-top: 0;
+        font-size: 1.3rem;
+        color: var(--accent);
+      }
+      .slide-number {
+        display: inline-block;
+        background: var(--accent-light);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+      }
+{% endblock %}
+
+{% block content %}
+<h1>Presentation</h1>
+<p class="subtitle">Slide-style overview of the project, suitable for a 10–15 minute walkthrough.</p>
+
+<div class="slide">
+  <span class="slide-number">1</span>
+  <h2>NSL-KDD Cybersecurity Detection Engine</h2>
+  <p>A class ML pipeline refactored into a reusable intrusion-detection engine with saved models, inference services, incident reports, and a browser demo.</p>
+</div>
+
+<div class="slide">
+  <span class="slide-number">2</span>
+  <h2>The Problem</h2>
+  <p>Network defenders need fast ways to separate normal traffic from suspicious activity. Manual inspection doesn't scale when thousands of connections arrive every second.</p>
+</div>
+
+<div class="slide">
+  <span class="slide-number">3</span>
+  <h2>Dataset: NSL-KDD</h2>
+  <ul>
+    <li>Tabular network connection records</li>
+    <li>Protocol, service, byte counts, error rates, host-level statistics</li>
+    <li>Labels: normal traffic and multiple attack types</li>
+    <li>Categories: DoS, Probe, R2L, U2R, Normal</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <span class="slide-number">4</span>
+  <h2>Modeling Approach</h2>
+  <p><strong>Binary task:</strong> normal vs attack — Logistic Regression, Random Forest, Gradient Boosting. Best selected by F1.</p>
+  <p><strong>Multiclass task:</strong> attack category — Random Forest over five categories.</p>
+  <p><strong>Preprocessing:</strong> one-hot encoding for categoricals, median imputation and scaling for numerics.</p>
+</div>
+
+<div class="slide">
+  <span class="slide-number">5</span>
+  <h2>Architecture</h2>
+  <ul>
+    <li><strong>Core</strong> — data loading, feature engineering, training, inference, explanations</li>
+    <li><strong>Services</strong> — training workflow, detection service, incident reporting</li>
+    <li><strong>API</strong> — FastAPI routes, schemas, browser demo</li>
+  </ul>
+  <p><a href="/architecture">See full architecture &rarr;</a></p>
+</div>
+
+<div class="slide">
+  <span class="slide-number">6</span>
+  <h2>Live Demo</h2>
+  <ol>
+    <li>Start server with <code>uvicorn src.api.app:app --reload</code></li>
+    <li>Open <code>/demo</code></li>
+    <li>Load benign example &rarr; score &rarr; see "Normal Traffic"</li>
+    <li>Load attack example &rarr; score &rarr; see "Attack Detected" with category and explanation</li>
+    <li>Call <code>/report/incidents</code> to summarize predictions</li>
+  </ol>
+  <p><a href="/demo">Open demo &rarr;</a></p>
+</div>
+
+<div class="slide">
+  <span class="slide-number">7</span>
+  <h2>Results</h2>
+  <ul>
+    <li>Binary confusion matrices and ROC curves</li>
+    <li>Multiclass confusion matrix</li>
+    <li>Feature importance rankings</li>
+    <li>Scores depend on NSL-KDD train/test split and selected model</li>
+  </ul>
+  <p><a href="/results">View charts &rarr;</a></p>
+</div>
+
+<div class="slide">
+  <span class="slide-number">8</span>
+  <h2>Limitations</h2>
+  <ul>
+    <li>NSL-KDD is a benchmark, not modern production traffic</li>
+    <li>Explanations are concise analyst summaries, not full causal attributions</li>
+    <li>Training endpoint is synchronous (demo use only)</li>
+    <li>Models are classical scikit-learn baselines for class-project clarity</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <span class="slide-number">9</span>
+  <h2>Future Work</h2>
+  <ul>
+    <li>Richer explanations (permutation importance, SHAP)</li>
+    <li>Uploaded CSV batch scoring</li>
+    <li>Asynchronous training jobs and run history</li>
+    <li>Model cards with dataset provenance and caveats</li>
+    <li>Autonomous agent wrapper around the service layer</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <span class="slide-number">10</span>
+  <h2>Thank You</h2>
+  <p>Explore the project:</p>
+  <ul>
+    <li><a href="/demo">Live Demo</a></li>
+    <li><a href="/results">Results &amp; Charts</a></li>
+    <li><a href="https://github.com/willdaly/ml-group-project" target="_blank" rel="noopener">GitHub Repository</a></li>
+  </ul>
+</div>
+{% endblock %}
