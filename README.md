@@ -115,6 +115,23 @@ curl -X POST http://127.0.0.1:8000/report/incidents \
   }'
 ```
 
+## Quick Demo
+
+```bash
+# 1. Train models (one-time)
+python main.py --data-dir data/nsl-kdd --output-dir outputs --model-dir models
+
+# 2. Start the server
+uvicorn src.api.app:app --reload
+
+# 3. Open in browser
+open http://127.0.0.1:8000/demo
+```
+
+On the `/demo` page, click **Load Benign Example** or **Load Attack Example**, then **Score Record** to see classification results with confidence scores and explanations.
+
+See `docs/demo_runbook.md` for a full 60-second demo script.
+
 ## Run Tests
 
 ```bash
