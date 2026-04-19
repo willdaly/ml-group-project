@@ -9,6 +9,8 @@ from src.data_loader import load_nsl_kdd_frames
 from src.eda import build_eda_summary, render_eda_artifacts
 from src.train_models import (
     render_model_visualizations,
+    save_detection_artifacts,
+    select_best_model,
     train_and_evaluate_models,
     train_multiclass_model,
     write_model_artifacts,
@@ -31,6 +33,11 @@ def main(argv: list[str] | None = None) -> int:
         "--dataset",
         default=None,
         help="KaggleHub dataset handle (default: KAGGLEHUB_DATASET env or hassan06/nslkdd).",
+    )
+    parser.add_argument(
+        "--model-dir",
+        default="models",
+        help="Directory for saved inference models (default: models).",
     )
     args = parser.parse_args(argv)
 
@@ -60,9 +67,28 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- Multiclass classification ---
     print("\n[4/4] Training multiclass attack-category classifier...")
-    train_multiclass_model(train_df, test_df, output_dir=args.output_dir)
+    multiclass_metrics, multiclass_model = train_multiclass_model(
+        train_df,
+        test_df,
+        output_dir=args.output_dir,
+        return_model=True,
+    )
+    best_model_name, best_model = select_best_model(results, models)
+    model_paths = save_detection_artifacts(
+        best_model,
+        multiclass_model,
+        model_dir=args.model_dir,
+        metadata={
+            "best_binary_model": best_model_name,
+            "dataset": metadata,
+            "multiclass_accuracy": multiclass_metrics["multiclass_accuracy"],
+        },
+    )
 
     print(f"\nAll outputs written to {args.output_dir}/")
+    print(f"Saved inference models to {args.model_dir}/")
+    for model_name, model_path in model_paths.items():
+        print(f"  {model_name}: {model_path}")
     return 0
 
 

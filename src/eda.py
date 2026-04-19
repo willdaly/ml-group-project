@@ -16,31 +16,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-# Standard NSL-KDD attack-category mapping
-ATTACK_CATEGORY_MAP = {
-    "normal": "Normal",
-    # DoS
-    "back": "DoS", "land": "DoS", "neptune": "DoS", "pod": "DoS",
-    "smurf": "DoS", "teardrop": "DoS", "apache2": "DoS", "mailbomb": "DoS",
-    "processtable": "DoS", "udpstorm": "DoS",
-    # Probe
-    "ipsweep": "Probe", "nmap": "Probe", "portsweep": "Probe", "satan": "Probe",
-    "mscan": "Probe", "saint": "Probe",
-    # R2L
-    "ftp_write": "R2L", "guess_passwd": "R2L", "imap": "R2L", "multihop": "R2L",
-    "phf": "R2L", "spy": "R2L", "warezclient": "R2L", "warezmaster": "R2L",
-    "httptunnel": "R2L", "named": "R2L", "sendmail": "R2L",
-    "snmpgetattack": "R2L", "snmpguess": "R2L", "worm": "R2L",
-    "xlock": "R2L", "xsnoop": "R2L",
-    # U2R
-    "buffer_overflow": "U2R", "loadmodule": "U2R", "perl": "U2R",
-    "rootkit": "U2R", "ps": "U2R", "sqlattack": "U2R", "xterm": "U2R",
-}
-
-
-def map_attack_category(label_series: pd.Series) -> pd.Series:
-    """Map fine-grained attack labels to the five standard NSL-KDD categories."""
-    return label_series.str.lower().str.strip().map(ATTACK_CATEGORY_MAP).fillna("Unknown")
+from src.core.features import ATTACK_CATEGORY_MAP, map_attack_category
 
 
 def build_eda_summary(train_df: pd.DataFrame, test_df: pd.DataFrame, metadata: dict[str, str]) -> dict:

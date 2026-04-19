@@ -38,8 +38,10 @@ def _minimal_frames():
 def test_main_runs_without_kaggle_download(mock_load, tmp_path: Path) -> None:
     mock_load.return_value = _minimal_frames()
     out = tmp_path / "out"
-    code = main(["--output-dir", str(out)])
+    models = tmp_path / "models"
+    code = main(["--output-dir", str(out), "--model-dir", str(models)])
     assert code == 0
     assert (out / "eda_summary.json").is_file()
     assert (out / "model_metrics.json").is_file()
     assert (out / "MODEL_METRICS.md").is_file()
+    assert (models / "binary_model.joblib").is_file()
