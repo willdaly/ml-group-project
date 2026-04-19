@@ -1,0 +1,16 @@
+{
+  "duration": 0,
+  "protocol_type": "tcp",
+  "service": "http",
+  "flag": "SF",
+  "src_bytes": 181,
+  "dst_bytes": 5450,
+  "count": 8,
+  "srv_count": 8,
+  "serror_rate": 0.0,
+  "srv_serror_rate": 0.0,
+  "dst_host_count": 9,
+  "dst_host_srv_count": 9,
+  "dst_host_serror_rate": 0.0,
+  "num_failed_logins": 0
+}
