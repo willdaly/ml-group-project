@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Results — NSL-KDD Detection Engine{% endblock %}
+
+{% block content %}
+<h1>Results</h1>
+<p class="subtitle">Model evaluation outputs generated from the NSL-KDD training pipeline.</p>
+
+<h2>Model Comparison</h2>
+<div class="card">
+  <p>Accuracy, precision, recall, and F1 scores across binary classifiers. The best model is selected by F1.</p>
+  <img class="chart" src="/static/outputs/model_comparison.png" alt="Model comparison bar chart">
+</div>
+
+<h2>Confusion Matrices</h2>
+<div class="card">
+  <p>Binary classification confusion matrices for each model showing true/false positives and negatives.</p>
+  <img class="chart" src="/static/outputs/confusion_matrices.png" alt="Binary confusion matrices">
+</div>
+
+<h2>ROC Curves</h2>
+<div class="card">
+  <p>Receiver Operating Characteristic curves showing the trade-off between true positive rate and false positive rate.</p>
+  <img class="chart" src="/static/outputs/roc_curves.png" alt="ROC curves">
+</div>
+
+<h2>Multiclass Confusion Matrix</h2>
+<div class="card">
+  <p>Attack category classification performance across all five NSL-KDD categories.</p>
+  <img class="chart" src="/static/outputs/multiclass_confusion_matrix.png" alt="Multiclass confusion matrix">
+</div>
+
+<h2>Feature Importance</h2>
+<div class="card">
+  <p>Top features driving the binary classification decision, ranked by importance in the best model.</p>
+  <img class="chart" src="/static/outputs/feature_importance.png" alt="Feature importance chart">
+</div>
+
+<h2>Label Distribution</h2>
+<div class="card">
+  <p>Distribution of normal vs attack labels in the training data.</p>
+  <img class="chart" src="/static/outputs/label_distribution.png" alt="Label distribution">
+</div>
+
+<h2>Attack Category Distribution</h2>
+<div class="card">
+  <p>Breakdown of attack types across the dataset.</p>
+  <img class="chart" src="/static/outputs/attack_category_distribution.png" alt="Attack category distribution">
+</div>
+
+<p style="margin-top: 24px;"><a href="/demo">Try the live demo &rarr;</a></p>
+{% endblock %}

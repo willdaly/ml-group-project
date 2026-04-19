@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}How It Works — NSL-KDD Detection Engine{% endblock %}
+
+{% block content %}
+<h1>How It Works</h1>
+<p class="subtitle">An overview of the dataset, features, models, and preprocessing behind the detection engine.</p>
+
+<h2>Dataset: NSL-KDD</h2>
+<div class="card">
+  <p>The project uses the <strong>NSL-KDD</strong> dataset, a refined benchmark derived from KDD Cup 1999 network intrusion data. Each row describes a single network connection with protocol details, byte counts, error rates, host-level statistics, and a label.</p>
+  <p>The dataset includes two files: <code>KDDTrain+.txt</code> (training) and <code>KDDTest+.txt</code> (evaluation), stored locally under <code>data/nsl-kdd/</code> so the project runs fully offline.</p>
+</div>
+
+<h2>Input Features</h2>
+<div class="card">
+  <p>Each connection record contains fields such as:</p>
+  <ul>
+    <li><strong>Protocol type</strong> — tcp, udp, icmp</li>
+    <li><strong>Service</strong> — http, ftp, smtp, private, etc.</li>
+    <li><strong>Flag</strong> — connection status (SF, S0, REJ, etc.)</li>
+    <li><strong>Byte counts</strong> — src_bytes, dst_bytes</li>
+    <li><strong>Error rates</strong> — serror_rate, srv_serror_rate, dst_host_serror_rate</li>
+    <li><strong>Connection counts</strong> — count, srv_count, dst_host_count</li>
+    <li><strong>Login indicators</strong> — num_failed_logins, logged_in, root_shell</li>
+  </ul>
+  <p>Categorical fields are one-hot encoded. Numeric fields are scaled and imputed.</p>
+</div>
+
+<h2>Binary Classification</h2>
+<div class="card">
+  <p>The first task separates traffic into two classes: <span class="badge normal">normal</span> and <span class="badge attack">attack</span>.</p>
+  <p>Three models are trained and evaluated:</p>
+  <ul>
+    <li>Logistic Regression</li>
+    <li>Random Forest</li>
+    <li>Gradient Boosting</li>
+  </ul>
+  <p>The best model is selected by <strong>F1 score</strong> on the test set.</p>
+</div>
+
+<h2>Multiclass Attack Categories</h2>
+<div class="card">
+  <p>Once traffic is flagged as an attack, a second Random Forest model classifies it into one of five NSL-KDD categories:</p>
+  <ul>
+    <li><strong>DoS</strong> — Denial of Service</li>
+    <li><strong>Probe</strong> — Surveillance / scanning</li>
+    <li><strong>R2L</strong> — Remote to Local unauthorized access</li>
+    <li><strong>U2R</strong> — User to Root privilege escalation</li>
+    <li><strong>Normal</strong> — Benign traffic</li>
+  </ul>
+</div>
+
+<h2>Preprocessing</h2>
+<div class="card">
+  <p>The pipeline applies:</p>
+  <ul>
+    <li><strong>One-hot encoding</strong> for categorical features (protocol_type, service, flag)</li>
+    <li><strong>Median imputation</strong> for missing numeric values</li>
+    <li><strong>Standard scaling</strong> for numeric features</li>
+    <li><strong>Safe defaults</strong> for missing columns at inference time</li>
+  </ul>
+  <p>This ensures the demo can score compact JSON inputs without requiring all 41 original NSL-KDD columns.</p>
+</div>
+
+<h2>Inference &amp; Explanation</h2>
+<div class="card">
+  <p>Each prediction returns:</p>
+  <ul>
+    <li><strong>Binary class</strong> — normal or attack</li>
+    <li><strong>Attack category</strong> — when classified as an attack</li>
+    <li><strong>Confidence score</strong> — from <code>predict_proba</code> when available</li>
+    <li><strong>Analyst explanation</strong> — a plain-English summary of which features contributed to the classification</li>
+  </ul>
+  <p><a href="/demo">Try it live &rarr;</a></p>
+</div>
+{% endblock %}
