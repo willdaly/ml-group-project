@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NSL-KDD Detection Demo</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, Helvetica, sans-serif;
+        --ink: #17202a;
+        --muted: #52616b;
+        --line: #c8d1d9;
+        --accent: #0f766e;
+        --alert: #b42318;
+        --paper: #f7f9fb;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      main {
+        width: min(980px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2rem;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 280px;
+        box-sizing: border-box;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        font: 0.95rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: #ffffff;
+      }
+
+      button {
+        margin-top: 12px;
+        border: 0;
+        border-radius: 8px;
+        padding: 12px 18px;
+        color: #ffffff;
+        background: var(--accent);
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      pre {
+        min-height: 120px;
+        overflow: auto;
+        white-space: pre-wrap;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #ffffff;
+      }
+
+      .status {
+        margin: 16px 0;
+        padding: 10px 12px;
+        border-left: 4px solid var(--accent);
+        background: #ffffff;
+      }
+
+      .error {
+        border-left-color: var(--alert);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>NSL-KDD Detection Demo</h1>
+      <p>Score a network connection record with the saved binary and multiclass models.</p>
+
+      <div id="status" class="status">Checking model status...</div>
+
+      <label for="record"><strong>Network record JSON</strong></label>
+      <textarea id="record">{
+  "duration": 0,
+  "protocol_type": "tcp",
+  "service": "http",
+  "flag": "SF",
+  "src_bytes": 181,
+  "dst_bytes": 5450,
+  "count": 8,
+  "srv_count": 8,
+  "serror_rate": 0,
+  "srv_serror_rate": 0,
+  "dst_host_count": 9,
+  "dst_host_srv_count": 9
+}</textarea>
+      <button id="score">Score Record</button>
+
+      <h2>Result</h2>
+      <pre id="result">Submit a record to see the classification.</pre>
+    </main>
+
+    <script>
+      const statusBox = document.getElementById("status");
+      const resultBox = document.getElementById("result");
+
+      async function refreshHealth() {
+        const response = await fetch("/health");
+        const data = await response.json();
+        statusBox.textContent = data.model_ready
+          ? "Model ready. You can score records now."
+          : "No saved model found. Run POST /train or python main.py first.";
+        statusBox.classList.toggle("error", !data.model_ready);
+      }
+
+      document.getElementById("score").addEventListener("click", async () => {
+        try {
+          const record = JSON.parse(document.getElementById("record").value);
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({record})
+          });
+          const data = await response.json();
+          resultBox.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          resultBox.textContent = String(error);
+        }
+      });
+
+      refreshHealth();
+    </script>
+  </body>
+</html>
+

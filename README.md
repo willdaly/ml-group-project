@@ -1,20 +1,32 @@
-# ML Group Project
+# NSL-KDD Cybersecurity Detection Engine
 
 ## Overview
 
-This repository packages a complete NSL-KDD intrusion-detection project for class submission. It includes the dataset, exploratory analysis, reproducible model-training code, generated artifacts, a written report, and a slide-ready presentation outline.
+This repository packages a complete NSL-KDD intrusion-detection project for class submission and demo use. It preserves the original exploratory analysis and model-training pipeline, and adds a reusable detection engine with a lightweight FastAPI browser demo.
 
 ## Submission Contents
 
 - `data/nsl-kdd/` — Local copy of `KDDTrain+.txt` and `KDDTest+.txt` for offline grading.
 - `EDA.ipynb` — Interactive exploration and visual analysis (styled, used for class presentation).
 - `01_eda_nsl_kdd.ipynb` — Full methodical EDA walkthrough on the complete training set with fine-grained attack-type breakdowns.
-- `main.py` and `src/` — End-to-end pipeline for EDA artifacts and baseline ML models.
+- `main.py` and `src/` — End-to-end pipeline, reusable ML core, service layer, and FastAPI app.
 - `outputs/` — Generated charts and model metrics included with the submission.
+- `models/` — Saved binary and multiclass inference models after training.
+- `docs/` — Refactor plan, architecture notes, technical writeup, and presentation notes.
 - `Report.pdf` — Final written report (submission copy).
 - `PRESENTATION.pptx` — Slide deck with embedded charts (submission copy).
 - `drafts/` — Markdown source files for the report and presentation.
-- `SUBMISSION_CHECKLIST.md` — Quick turn-in checklist mapped to the assignment.
+
+## Architecture
+
+```text
+src/
+  core/       reusable data loading, feature prep, model training, inference, and explanations
+  services/   training, detection, and reporting workflows
+  api/        FastAPI app, routes, and request/response schemas
+```
+
+The legacy imports in `src/data_loader.py`, `src/train_models.py`, and `src/eda.py` are kept so the original CLI and tests continue to work.
 
 ## Setup
 
@@ -27,13 +39,80 @@ pip install -r requirements.txt
 The repository is now self-contained and runs offline with the included dataset:
 
 ```bash
-python main.py --data-dir data/nsl-kdd --output-dir outputs
+python main.py --data-dir data/nsl-kdd --output-dir outputs --model-dir models
 ```
 
 Optional Kaggle fallback still works when internet access is available:
 
 ```bash
-python main.py --dataset hassan06/nslkdd --output-dir outputs
+python main.py --dataset hassan06/nslkdd --output-dir outputs --model-dir models
+```
+
+Training writes:
+
+- EDA charts and metrics to `outputs/`
+- binary and multiclass model files to `models/`
+- model metadata to `models/metadata.json`
+
+## Run The FastAPI Demo
+
+Train once so `models/` exists, then start the app:
+
+```bash
+uvicorn src.api.app:app --reload
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/demo
+```
+
+Useful endpoints:
+
+- `GET /health`
+- `POST /train`
+- `POST /predict`
+- `POST /predict/batch`
+- `POST /report/incidents`
+- `GET /demo`
+
+Example single-record scoring:
+
+```bash
+curl -X POST http://127.0.0.1:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "record": {
+      "duration": 0,
+      "protocol_type": "tcp",
+      "service": "http",
+      "flag": "SF",
+      "src_bytes": 181,
+      "dst_bytes": 5450,
+      "count": 8,
+      "srv_count": 8,
+      "serror_rate": 0,
+      "srv_serror_rate": 0
+    }
+  }'
+```
+
+Example incident report from predictions:
+
+```bash
+curl -X POST http://127.0.0.1:8000/report/incidents \
+  -H "Content-Type: application/json" \
+  -d '{
+    "predictions": [
+      {
+        "binary_class": "attack",
+        "attack_category": "DoS",
+        "confidence": 0.91,
+        "explanation": "Traffic is classified as a DoS attack."
+      }
+    ]
+  }'
 ```
 
 ## Run Tests
@@ -41,3 +120,9 @@ python main.py --dataset hassan06/nslkdd --output-dir outputs
 ```bash
 pytest
 ```
+
+## Documentation
+
+- `docs/technical_writeup.md` — project objective, dataset, modeling workflow, testing, limitations, and future work.
+- `docs/architecture.md` — current module boundaries, request flow, and saved artifact layout.
+- `docs/presentation_notes.md` — slide-ready content for a short project demo.
