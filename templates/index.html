@@ -12,7 +12,11 @@
         --muted: #52616b;
         --line: #c8d1d9;
         --accent: #0f766e;
+        --accent-light: #e6f5f3;
         --alert: #b42318;
+        --alert-light: #fef2f2;
+        --safe: #16a34a;
+        --safe-light: #f0fdf4;
         --paper: #f7f9fb;
       }
 
@@ -28,46 +32,51 @@
         padding: 32px 0;
       }
 
-      h1 {
-        margin: 0 0 8px;
-        font-size: 2rem;
-      }
+      h1 { margin: 0 0 4px; font-size: 2rem; }
+      h2 { margin: 28px 0 12px; font-size: 1.25rem; }
 
-      p {
+      .subtitle {
         color: var(--muted);
         line-height: 1.5;
+        margin: 0 0 16px;
       }
 
       textarea {
         width: 100%;
-        min-height: 280px;
+        min-height: 240px;
         box-sizing: border-box;
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 14px;
-        font: 0.95rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font: 0.9rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         background: #ffffff;
+        resize: vertical;
+      }
+
+      .btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0 0;
       }
 
       button {
-        margin-top: 12px;
         border: 0;
         border-radius: 8px;
-        padding: 12px 18px;
+        padding: 10px 16px;
         color: #ffffff;
         background: var(--accent);
         font-weight: 700;
+        font-size: 0.9rem;
         cursor: pointer;
       }
 
-      pre {
-        min-height: 120px;
-        overflow: auto;
-        white-space: pre-wrap;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 14px;
-        background: #ffffff;
+      button:hover { opacity: 0.9; }
+
+      button.secondary {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
       }
 
       .status {
@@ -75,20 +84,117 @@
         padding: 10px 12px;
         border-left: 4px solid var(--accent);
         background: #ffffff;
+        border-radius: 0 8px 8px 0;
       }
 
-      .error {
-        border-left-color: var(--alert);
+      .error { border-left-color: var(--alert); }
+
+      /* Result card */
+      .result-card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #ffffff;
+        overflow: hidden;
       }
+
+      .result-placeholder {
+        padding: 24px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .result-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 20px;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+
+      .result-header.normal {
+        background: var(--safe-light);
+        color: var(--safe);
+      }
+
+      .result-header.attack {
+        background: var(--alert-light);
+        color: var(--alert);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge.normal { background: var(--safe-light); color: var(--safe); }
+      .badge.attack { background: var(--alert-light); color: var(--alert); }
+
+      .result-body {
+        padding: 16px 20px;
+      }
+
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--paper);
+      }
+
+      .result-row:last-child { border-bottom: none; }
+
+      .result-label {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .result-value {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .explanation {
+        margin-top: 12px;
+        padding: 12px 14px;
+        background: var(--paper);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--ink);
+      }
+
+      .confidence-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--paper);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 4px;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+
+      .confidence-fill.normal { background: var(--safe); }
+      .confidence-fill.attack { background: var(--alert); }
     </style>
   </head>
   <body>
     <main>
       <h1>NSL-KDD Detection Demo</h1>
-      <p>Score a network connection record with the saved binary and multiclass models.</p>
+      <p class="subtitle">Score a network connection record with the saved binary and multiclass models.</p>
 
-      <div id="status" class="status">Checking model status...</div>
+      <div id="status" class="status">Checking model status&hellip;</div>
 
+      <h2>Input</h2>
       <label for="record"><strong>Network record JSON</strong></label>
       <textarea id="record">{
   "duration": 0,
@@ -104,39 +210,133 @@
   "dst_host_count": 9,
   "dst_host_srv_count": 9
 }</textarea>
-      <button id="score">Score Record</button>
+
+      <div class="btn-row">
+        <button id="score">Score Record</button>
+        <button id="load-benign" class="secondary">Load Benign Example</button>
+        <button id="load-attack" class="secondary">Load Attack Example</button>
+      </div>
 
       <h2>Result</h2>
-      <pre id="result">Submit a record to see the classification.</pre>
+      <div id="result" class="result-card">
+        <div class="result-placeholder">Submit a record to see the classification.</div>
+      </div>
     </main>
 
     <script>
+      const EXAMPLES = {
+        benign: {
+          duration: 0,
+          protocol_type: "tcp",
+          service: "http",
+          flag: "SF",
+          src_bytes: 181,
+          dst_bytes: 5450,
+          count: 8,
+          srv_count: 8,
+          serror_rate: 0,
+          srv_serror_rate: 0,
+          dst_host_count: 9,
+          dst_host_srv_count: 9,
+          dst_host_serror_rate: 0,
+          num_failed_logins: 0
+        },
+        attack: {
+          duration: 0,
+          protocol_type: "tcp",
+          service: "http",
+          flag: "S0",
+          src_bytes: 0,
+          dst_bytes: 0,
+          count: 511,
+          srv_count: 511,
+          serror_rate: 1.0,
+          srv_serror_rate: 1.0,
+          dst_host_count: 255,
+          dst_host_srv_count: 255,
+          dst_host_serror_rate: 1.0,
+          num_failed_logins: 0
+        }
+      };
+
       const statusBox = document.getElementById("status");
       const resultBox = document.getElementById("result");
+      const recordBox = document.getElementById("record");
+
+      function loadExample(name) {
+        recordBox.value = JSON.stringify(EXAMPLES[name], null, 2);
+      }
+
+      function renderResult(data) {
+        const isNormal = data.binary_class === "normal";
+        const kind = isNormal ? "normal" : "attack";
+        const label = isNormal ? "Normal Traffic" : "Attack Detected";
+        const icon = isNormal ? "&#x2705;" : "&#x1F6A8;";
+        const confPct = data.confidence != null ? (data.confidence * 100).toFixed(1) + "%" : "N/A";
+
+        resultBox.innerHTML =
+          '<div class="result-header ' + kind + '">' +
+            '<span>' + icon + '</span> ' + label +
+          '</div>' +
+          '<div class="result-body">' +
+            '<div class="result-row">' +
+              '<span class="result-label">Classification</span>' +
+              '<span class="badge ' + kind + '">' + data.binary_class + '</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Attack Category</span>' +
+              '<span class="result-value">' + data.attack_category + '</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Confidence</span>' +
+              '<span class="result-value">' + confPct + '</span>' +
+            '</div>' +
+            '<div class="confidence-bar">' +
+              '<div class="confidence-fill ' + kind + '" style="width:' + (data.confidence != null ? (data.confidence * 100) : 0) + '%"></div>' +
+            '</div>' +
+            '<div class="explanation">' + data.explanation + '</div>' +
+          '</div>';
+      }
+
+      function renderError(msg) {
+        resultBox.innerHTML = '<div class="result-placeholder" style="color:var(--alert)">' + msg + '</div>';
+      }
 
       async function refreshHealth() {
-        const response = await fetch("/health");
-        const data = await response.json();
-        statusBox.textContent = data.model_ready
-          ? "Model ready. You can score records now."
-          : "No saved model found. Run POST /train or python main.py first.";
-        statusBox.classList.toggle("error", !data.model_ready);
+        try {
+          const response = await fetch("/health");
+          const data = await response.json();
+          statusBox.textContent = data.model_ready
+            ? "\u2705 Model ready. You can score records now."
+            : "\u26A0\uFE0F No saved model found. Run POST /train or python main.py first.";
+          statusBox.classList.toggle("error", !data.model_ready);
+        } catch (e) {
+          statusBox.textContent = "Could not reach server.";
+          statusBox.classList.add("error");
+        }
       }
 
       document.getElementById("score").addEventListener("click", async () => {
         try {
-          const record = JSON.parse(document.getElementById("record").value);
+          const record = JSON.parse(recordBox.value);
           const response = await fetch("/predict", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({record})
           });
-          const data = await response.json();
-          resultBox.textContent = JSON.stringify(data, null, 2);
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            renderError(err.detail || "Server error " + response.status);
+            return;
+          }
+          renderResult(await response.json());
         } catch (error) {
-          resultBox.textContent = String(error);
+          renderError(String(error));
         }
       });
+
+      document.getElementById("load-benign").addEventListener("click", () => loadExample("benign"));
+      document.getElementById("load-attack").addEventListener("click", () => loadExample("attack"));
 
       refreshHealth();
     </script>
