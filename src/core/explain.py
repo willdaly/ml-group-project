@@ -19,6 +19,8 @@ def explain_prediction(record: dict[str, Any], binary_label: str, attack_categor
         signals.append("destination-host error concentration")
     if float(record.get("num_failed_logins") or 0) > 0:
         signals.append("failed login activity")
+    if int(float(record.get("src_bytes") or 0)) == 0 and int(float(record.get("dst_bytes") or 0)) == 0:
+        signals.append("zero-payload connections (possible SYN flood)")
 
     if not signals:
         signals.append("feature patterns learned from NSL-KDD attacks")

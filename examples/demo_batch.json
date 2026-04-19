@@ -1,0 +1,50 @@
+[
+  {
+    "duration": 0,
+    "protocol_type": "tcp",
+    "service": "http",
+    "flag": "SF",
+    "src_bytes": 181,
+    "dst_bytes": 5450,
+    "count": 8,
+    "srv_count": 8,
+    "serror_rate": 0.0,
+    "srv_serror_rate": 0.0,
+    "dst_host_count": 9,
+    "dst_host_srv_count": 9,
+    "dst_host_serror_rate": 0.0,
+    "num_failed_logins": 0
+  },
+  {
+    "duration": 0,
+    "protocol_type": "tcp",
+    "service": "http",
+    "flag": "S0",
+    "src_bytes": 0,
+    "dst_bytes": 0,
+    "count": 511,
+    "srv_count": 511,
+    "serror_rate": 1.0,
+    "srv_serror_rate": 1.0,
+    "dst_host_count": 255,
+    "dst_host_srv_count": 255,
+    "dst_host_serror_rate": 1.0,
+    "num_failed_logins": 0
+  },
+  {
+    "duration": 1,
+    "protocol_type": "udp",
+    "service": "private",
+    "flag": "SF",
+    "src_bytes": 105,
+    "dst_bytes": 146,
+    "count": 1,
+    "srv_count": 1,
+    "serror_rate": 0.0,
+    "srv_serror_rate": 0.0,
+    "dst_host_count": 255,
+    "dst_host_srv_count": 1,
+    "dst_host_serror_rate": 0.0,
+    "num_failed_logins": 0
+  }
+]
