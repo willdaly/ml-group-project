@@ -143,3 +143,18 @@ pytest
 - `docs/technical_writeup.md` — project objective, dataset, modeling workflow, testing, limitations, and future work.
 - `docs/architecture.md` — current module boundaries, request flow, and saved artifact layout.
 - `docs/presentation_notes.md` — slide-ready content for a short project demo.
+
+## Project Website
+
+The FastAPI app doubles as a multi-page project website. After starting the server, visit:
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Home | `/` | Project overview and navigation |
+| Demo | `/demo` | Live prediction with example inputs |
+| How It Works | `/how-it-works` | Dataset, models, preprocessing |
+| Results | `/results` | Charts, confusion matrices, ROC curves |
+| Architecture | `/architecture` | Code organization and request flows |
+| Presentation | `/presentation` | Slide-style project walkthrough |
+
+A shared top navigation bar links all pages together, with an external link to the GitHub repository.
