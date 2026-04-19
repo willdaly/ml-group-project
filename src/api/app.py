@@ -23,11 +23,12 @@ def create_app() -> FastAPI:
     )
     static_dir = PROJECT_ROOT / "static"
     static_dir.mkdir(exist_ok=True)
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     outputs_dir = PROJECT_ROOT / "outputs"
     if outputs_dir.is_dir():
         app.mount("/static/outputs", StaticFiles(directory=str(outputs_dir)), name="outputs")
+
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     app.include_router(health.router)
     app.include_router(train.router)
