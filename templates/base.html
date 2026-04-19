@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}NSL-KDD Detection Engine{% endblock %}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, Helvetica, sans-serif;
+        --ink: #17202a;
+        --muted: #52616b;
+        --line: #c8d1d9;
+        --accent: #0f766e;
+        --accent-light: #e6f5f3;
+        --alert: #b42318;
+        --alert-light: #fef2f2;
+        --safe: #16a34a;
+        --safe-light: #f0fdf4;
+        --paper: #f7f9fb;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      /* ── Top navigation ── */
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 24px;
+        height: 52px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--line);
+        overflow-x: auto;
+      }
+
+      nav .brand {
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: var(--accent);
+        text-decoration: none;
+        white-space: nowrap;
+        margin-right: 12px;
+      }
+
+      nav a {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        transition: background 0.15s, color 0.15s;
+      }
+
+      nav a:hover { background: var(--accent-light); color: var(--accent); }
+      nav a.active { background: var(--accent-light); color: var(--accent); }
+
+      nav .spacer { flex: 1; }
+
+      nav a.external {
+        margin-left: 4px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+
+      /* ── Page content ── */
+      .page {
+        width: min(980px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 64px;
+      }
+
+      h1 { margin: 0 0 4px; font-size: 2rem; }
+      h2 { margin: 32px 0 12px; font-size: 1.35rem; }
+      h3 { margin: 24px 0 8px; font-size: 1.1rem; }
+
+      p, li {
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        line-height: 1.5;
+        margin: 0 0 20px;
+        font-size: 1rem;
+      }
+
+      a { color: var(--accent); }
+
+      /* ── Shared components ── */
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+      }
+
+      .card h3 { margin-top: 0; }
+
+      .btn {
+        display: inline-block;
+        border: 0;
+        border-radius: 8px;
+        padding: 12px 20px;
+        color: #ffffff;
+        background: var(--accent);
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .btn:hover { opacity: 0.9; color: #ffffff; }
+
+      .btn.secondary {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge.normal { background: var(--safe-light); color: var(--safe); }
+      .badge.attack { background: var(--alert-light); color: var(--alert); }
+
+      img.chart {
+        width: 100%;
+        max-width: 720px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin: 8px 0 16px;
+      }
+
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.88rem;
+      }
+
+      {% block extra_css %}{% endblock %}
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a class="brand" href="/">NSL-KDD Engine</a>
+      <a href="/" {% if active_page == "home" %}class="active"{% endif %}>Home</a>
+      <a href="/demo" {% if active_page == "demo" %}class="active"{% endif %}>Demo</a>
+      <a href="/how-it-works" {% if active_page == "how-it-works" %}class="active"{% endif %}>How It Works</a>
+      <a href="/results" {% if active_page == "results" %}class="active"{% endif %}>Results</a>
+      <a href="/architecture" {% if active_page == "architecture" %}class="active"{% endif %}>Architecture</a>
+      <a href="/presentation" {% if active_page == "presentation" %}class="active"{% endif %}>Presentation</a>
+      <span class="spacer"></span>
+      <a class="external" href="https://github.com/willdaly/ml-group-project" target="_blank" rel="noopener">GitHub &nearr;</a>
+    </nav>
+
+    <div class="page">
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>
