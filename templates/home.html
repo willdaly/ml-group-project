@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}NSL-KDD Cybersecurity Detection Engine{% endblock %}
+
+{% block content %}
+<h1>NSL-KDD Cybersecurity Detection Engine</h1>
+<p class="subtitle">A machine-learning system that classifies network traffic as normal or attack, identifies the attack category, and explains the result.</p>
+
+<div style="margin: 24px 0;">
+  <a class="btn" href="/demo">Try the Live Demo &rarr;</a>
+  <a class="btn secondary" href="https://github.com/willdaly/ml-group-project" target="_blank" rel="noopener" style="margin-left: 8px;">View on GitHub</a>
+</div>
+
+<h2>The Problem</h2>
+<p>Network defenders need fast, automated ways to separate normal traffic from suspicious activity. Manual inspection doesn't scale when thousands of connections arrive every second.</p>
+
+<h2>Our Solution</h2>
+<p>We built a supervised learning pipeline on the <strong>NSL-KDD</strong> benchmark dataset that:</p>
+<ul>
+  <li><strong>Binary classification</strong> — separates normal traffic from attacks</li>
+  <li><strong>Multiclass classification</strong> — identifies the attack category (DoS, Probe, R2L, U2R)</li>
+  <li><strong>Confidence scoring</strong> — reports how certain the model is</li>
+  <li><strong>Analyst explanations</strong> — highlights which features drove the prediction</li>
+</ul>
+
+<h2>Explore This Site</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px;">
+  <div class="card">
+    <h3><a href="/demo">Live Demo</a></h3>
+    <p>Score a network connection record and see the classification, confidence, and explanation in real time.</p>
+  </div>
+  <div class="card">
+    <h3><a href="/how-it-works">How It Works</a></h3>
+    <p>Learn about the dataset, features, models, and preprocessing approach.</p>
+  </div>
+  <div class="card">
+    <h3><a href="/results">Results</a></h3>
+    <p>View confusion matrices, ROC curves, feature importance, and model comparison charts.</p>
+  </div>
+  <div class="card">
+    <h3><a href="/architecture">Architecture</a></h3>
+    <p>See how the codebase is organized into a reusable ML core, service layer, and API.</p>
+  </div>
+  <div class="card">
+    <h3><a href="/presentation">Presentation</a></h3>
+    <p>Browse the project's presentation material in a slide-style format.</p>
+  </div>
+</div>
+{% endblock %}
