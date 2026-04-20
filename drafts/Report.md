@@ -29,7 +29,7 @@ The combined dataset contains **148,517** rows: **125,973** in `KDDTrain+` and *
 
 ### What We Did In Exploration
 
-The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. Attack labels are mapped to the five standard NSL-KDD categories — Normal, DoS, Probe, R2L, and U2R — using a comprehensive lookup table. The notebooks `EDA.ipynb` and `01_eda_nsl_kdd.ipynb` handle the visual exploration — `EDA.ipynb` provides the primary styled analysis used for the class presentation, while `01_eda_nsl_kdd.ipynb` documents a full methodical walkthrough of the complete training set including fine-grained attack-type breakdowns. `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
+The project loads the training and test files with explicit NSL-KDD column names, combines them for summary statistics, and then explores label frequencies, service distribution, connection flags, and representative numeric features. Attack labels are mapped to the five standard NSL-KDD categories — Normal, DoS, Probe, R2L, and U2R — using a comprehensive lookup table. The notebooks `notebooks/EDA.ipynb` and `notebooks/01_eda_nsl_kdd.ipynb` handle the visual exploration — `notebooks/EDA.ipynb` provides the primary styled analysis used for the class presentation, while `notebooks/01_eda_nsl_kdd.ipynb` documents a full methodical walkthrough of the complete training set including fine-grained attack-type breakdowns. `main.py` reproduces the key EDA artifacts into `outputs/` for submission.
 
 ### Data Volume And Structure
 
@@ -112,7 +112,7 @@ These metrics align with the business problem. Security teams care about **recal
 The code is organized so each stage of the workflow is easy to explain in class:
 
 * `src/data_loader.py` resolves the dataset path, supports offline local data, and loads `KDDTrain+` and `KDDTest+`
-* `src/eda.py` computes dataset-level summary statistics, maps attack categories, and exports 6 sets of chart artifacts including correlation heatmaps and per-category feature distributions; supplementary full-dataset exploration is documented in `01_eda_nsl_kdd.ipynb`
+* `src/eda.py` computes dataset-level summary statistics, maps attack categories, and exports 6 sets of chart artifacts including correlation heatmaps and per-category feature distributions; supplementary full-dataset exploration is documented in `notebooks/01_eda_nsl_kdd.ipynb`
 * `src/train_models.py` builds the preprocessing pipeline with `ColumnTransformer`, fits three binary classifiers with class weighting, generates ROC curves, confusion matrix heatmaps, feature importance plots, and a model comparison chart. It also trains a separate multiclass Random Forest for 5-class attack-category prediction.
 * `main.py` ties the full workflow together so a single command reproduces all project outputs
 
@@ -213,7 +213,7 @@ Anthropic. (2026). *Claude* (claude-sonnet-4-6) [Large language model]. This pro
 ## Appendix
 
 * Reproducible pipeline entry point: `python main.py --data-dir data/nsl-kdd --output-dir outputs`
-* EDA notebook: `EDA.ipynb`
+* EDA notebook: `notebooks/EDA.ipynb`
 * Generated artifacts:
   * `outputs/eda_summary.json` — dataset summary statistics
   * `outputs/label_distribution.png` — top 10 fine-grained attack labels

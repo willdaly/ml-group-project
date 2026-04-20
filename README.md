@@ -9,8 +9,9 @@ This repository packages a complete NSL-KDD intrusion-detection project for clas
 ## Submission Contents
 
 - `data/nsl-kdd/` — Local copy of `KDDTrain+.txt` and `KDDTest+.txt` for offline grading.
-- `EDA.ipynb` — Interactive exploration and visual analysis (styled, used for class presentation).
-- `01_eda_nsl_kdd.ipynb` — Full methodical EDA walkthrough on the complete training set with fine-grained attack-type breakdowns.
+- `notebooks/EDA.ipynb` — Interactive exploration and visual analysis (styled, used for class presentation).
+- `notebooks/01_eda_nsl_kdd.ipynb` — Full methodical EDA walkthrough on the complete training set with fine-grained attack-type breakdowns.
+- `notebooks/ZahraDataset_Nslkdd.ipynb` — Additional exploratory notebook.
 - `main.py` and `src/` — End-to-end pipeline, reusable ML core, service layer, and FastAPI app.
 - `outputs/` — Generated charts and model metrics included with the submission.
 - `models/` — Saved binary and multiclass inference models after training.
