@@ -1,5 +1,7 @@
 # NSL-KDD Cybersecurity Detection Engine
 
+**Live demo:** [machine-learning-project-94gj.onrender.com](https://machine-learning-project-94gj.onrender.com/)
+
 ## Overview
 
 This repository packages a complete NSL-KDD intrusion-detection project for class submission and demo use. It preserves the original exploratory analysis and model-training pipeline, and adds a reusable detection engine with a lightweight FastAPI browser demo.
